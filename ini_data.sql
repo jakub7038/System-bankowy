@@ -7,7 +7,6 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
 
     PROCEDURE CREATE_EXAMPLE_ENTITIES AS
     BEGIN
-        -- Create clients
         client_pkg.CREATE_CLIENT(
             p_pesel => '12345678920',
             p_first_name => 'John',
@@ -80,7 +79,6 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_pesel => '98765432101'
         );
 
-        -- Create cards
         card_pkg.CREATE_CARD(
             p_card_number => '9876543210987691',
             p_date_of_expiration => TO_DATE('12/2025', 'MM/YYYY'),
@@ -114,7 +112,6 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_PIN => '1122'
         );
 
-        -- Card 4 (corrected card_number)
         card_pkg.CREATE_CARD(
             p_card_number => '1234567890123461',
             p_date_of_expiration => TO_DATE('05/2026', 'MM/YYYY'),
@@ -126,7 +123,6 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_PIN => '3344'
         );
 
-        -- Create receivers
         receiver_pkg.CREATE_RECEIVER(
             p_account_number_receiver => '3456789012345679',
             p_account_number_tied => '1234567890123461',
@@ -159,7 +155,6 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_last_name => 'Kaczmarek'
         );
 
-        -- Commit all data
         COMMIT;
 
     END CREATE_EXAMPLE_ENTITIES;
