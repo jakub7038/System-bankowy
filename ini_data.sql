@@ -1,6 +1,8 @@
 CREATE OR REPLACE PACKAGE ini_data IS
     PROCEDURE CREATE_EXAMPLE_ENTITIES;
     PROCEDURE READ_ALL_DATA;
+    PROCEDURE WIPE_ALL_DATA;
+    
 END ini_data;
 
 CREATE OR REPLACE PACKAGE BODY ini_data IS
@@ -20,7 +22,7 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_pesel => '12345678921',
             p_first_name => 'Jan',
             p_last_name => 'Kowalski',
-            p_middle_name => 'Michał',
+            p_middle_name => 'MichaĹ‚',
             p_phone_number => '123456789',
             p_date_of_birth => TO_DATE('1985-03-10', 'YYYY-MM-DD')
         );
@@ -127,7 +129,7 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_account_number_receiver => '3456789012345679',
             p_account_number_tied => '1234567890123461',
             p_description => 'Rodzina',
-            p_first_name => 'Paweł',
+            p_first_name => 'PaweĹ‚',
             p_last_name => 'Nowak'
         );
 
@@ -144,7 +146,7 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_account_number_tied => '2345678901234568',
             p_description => 'Firma',
             p_first_name => 'Marek',
-            p_last_name => 'Wiśniewski'
+            p_last_name => 'WiĹ›niewski'
         );
 
         receiver_pkg.CREATE_RECEIVER(
@@ -154,7 +156,27 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
             p_first_name => 'Ewa',
             p_last_name => 'Kaczmarek'
         );
-
+        
+        transaction_pkg.CREATE_TRANSACTION(
+            p_id => 1, 
+            p_account_number => '1234567890123461',
+            p_account_number_receiver => '2345678901234568',
+            p_date_of_transaction => SYSTIMESTAMP,
+            p_amount => 1000,
+            p_type_of_transaction => 'Transfer',
+            p_description_of_transaction => 'za zakupy'
+        );
+    
+        transaction_pkg.CREATE_TRANSACTION(
+            p_id => 2, 
+            p_account_number => '2345678901234568',
+            p_account_number_receiver => '0000009999012346',
+            p_date_of_transaction => SYSTIMESTAMP,
+            p_amount => 500,
+            p_type_of_transaction => 'Transfer',
+            p_description_of_transaction => 'złodziejstwo na bus'
+        );
+        
         COMMIT;
 
     END CREATE_EXAMPLE_ENTITIES;
@@ -165,9 +187,23 @@ CREATE OR REPLACE PACKAGE BODY ini_data IS
         client_pkg.read_all_clients;
         card_pkg.read_all_cards;
         account_pkg.READ_ALL_ACCOUNTS;
+        transaction_pkg.read_all_transactions;
     END READ_ALL_DATA;
+    
+    PROCEDURE WIPE_ALL_DATA AS
+    BEGIN
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE receiver';
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE card';
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE account';
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE client';
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE transaction';
+        EXECUTE IMMEDIATE 'TRUNCATE TABLE CLIENT_ACCOUNT';
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('All data has been wiped from the tables.');
+    END WIPE_ALL_DATA;
 
 -- SET SERVEROUTPUT ON;
+-- EXEC WIPE_ALL_DATA;
 -- EXEC ini_data.CREATE_EXAMPLE_ENTITIES;
 -- EXEC ini_data.READ_ALL_DATA;
 
