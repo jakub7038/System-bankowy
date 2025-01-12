@@ -1,4 +1,16 @@
 CREATE OR REPLACE PACKAGE client_pkg IS
+
+    TYPE client_obj IS RECORD (
+        pesel        CHAR(11),
+        first_name   VARCHAR2(50),
+        last_name    VARCHAR2(50),
+        middle_name  VARCHAR2(50),
+        phone_number VARCHAR2(20),
+        date_of_birth DATE
+    );
+
+    TYPE client_tbl IS TABLE OF client_obj;
+
     PROCEDURE CREATE_CLIENT (
         p_pesel IN CHAR,
         p_first_name IN VARCHAR2,
@@ -9,14 +21,9 @@ CREATE OR REPLACE PACKAGE client_pkg IS
         p_result OUT VARCHAR2
     );
 
-    PROCEDURE READ_ALL_CLIENTS (
-        p_clients OUT SYS_REFCURSOR
-    );
+    FUNCTION READ_ALL_CLIENTS RETURN client_tbl PIPELINED;
 
-    PROCEDURE READ_CLIENT_BY_PESEL (
-        p_pesel IN CHAR,
-        p_client OUT SYS_REFCURSOR
-    );
+    FUNCTION READ_CLIENT_BY_PESEL (p_pesel IN CHAR) RETURN client_tbl PIPELINED;
 
     PROCEDURE UPDATE_FIRST_NAME (
         p_pesel IN CHAR,
@@ -46,6 +53,7 @@ END client_pkg;
 /
 
 CREATE OR REPLACE PACKAGE BODY client_pkg IS
+
     PROCEDURE CREATE_CLIENT (
         p_pesel IN CHAR,
         p_first_name IN VARCHAR2,
@@ -69,34 +77,53 @@ CREATE OR REPLACE PACKAGE BODY client_pkg IS
             p_result := 'Error creating client: ' || SQLERRM;
     END CREATE_CLIENT;
 
-    PROCEDURE READ_ALL_CLIENTS (
-        p_clients OUT SYS_REFCURSOR
-    ) IS
+    FUNCTION READ_ALL_CLIENTS RETURN client_tbl PIPELINED IS
     BEGIN
-        OPEN p_clients FOR
-            SELECT PESEL, 
-                   first_name, 
-                   last_name, 
-                   middle_name, 
-                   phone_number, 
-                   TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth
-            FROM CLIENT;
+        FOR rec IN (
+            SELECT PESEL,
+                   first_name,
+                   last_name,
+                   middle_name,
+                   phone_number,
+                   date_of_birth
+            FROM CLIENT
+        ) LOOP
+            PIPE ROW(client_obj(
+                rec.PESEL,
+                rec.first_name,
+                rec.last_name,
+                rec.middle_name,
+                rec.phone_number,
+                rec.date_of_birth
+            ));
+        END LOOP;
+        RETURN;
     END READ_ALL_CLIENTS;
 
-    PROCEDURE READ_CLIENT_BY_PESEL (
-        p_pesel IN CHAR,
-        p_client OUT SYS_REFCURSOR
-    ) IS
+    FUNCTION READ_CLIENT_BY_PESEL (
+        p_pesel IN CHAR
+    ) RETURN client_tbl PIPELINED IS
     BEGIN
-        OPEN p_client FOR
-            SELECT PESEL, 
-                   first_name, 
-                   last_name, 
-                   middle_name, 
-                   phone_number, 
-                   TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth
+        FOR rec IN (
+            SELECT PESEL,
+                   first_name,
+                   last_name,
+                   middle_name,
+                   phone_number,
+                   date_of_birth
             FROM CLIENT
-            WHERE PESEL = p_pesel;
+            WHERE PESEL = p_pesel
+        ) LOOP
+            PIPE ROW(client_obj(
+                rec.PESEL,
+                rec.first_name,
+                rec.last_name,
+                rec.middle_name,
+                rec.phone_number,
+                rec.date_of_birth
+            ));
+        END LOOP;
+        RETURN;
     END READ_CLIENT_BY_PESEL;
 
     PROCEDURE UPDATE_FIRST_NAME (

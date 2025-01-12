@@ -32,26 +32,14 @@ public class ClientService {
 
     public List<Client> readAllClients() {
         List<Client> clients = new ArrayList<>();
-        String sql = "{call client_pkg.READ_ALL_CLIENTS(?)}";
+        String sql = "SELECT * FROM TABLE(client_pkg.READ_ALL_CLIENTS())";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-            stmt.registerOutParameter(1, OracleTypes.CURSOR);
-            stmt.execute();
-
-            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
-                while (rs.next()) {
-                    Client client = new Client(
-                            rs.getString("PESEL"),
-                            rs.getString("first_name"),
-                            rs.getString("last_name"),
-                            rs.getString("middle_name"),
-                            rs.getString("phone_number"),
-                            rs.getDate("date_of_birth")
-                    );
-                    clients.add(client);
-                }
+            while (rs.next()) {
+                clients.add(mapResultSetToClient(rs));
             }
 
         } catch (SQLException e) {
@@ -63,25 +51,15 @@ public class ClientService {
 
     public Client readClientByPesel(String pesel) {
         Client client = null;
-        String sql = "{call client_pkg.READ_CLIENT_BY_PESEL(?, ?)}";
+        String sql = "SELECT * FROM TABLE(client_pkg.READ_CLIENT_BY_PESEL(?))";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             stmt.setString(1, pesel);
-            stmt.registerOutParameter(2, OracleTypes.CURSOR);
-            stmt.execute();
-
-            try (ResultSet rs = (ResultSet) stmt.getObject(2)) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    client = new Client(
-                            rs.getString("PESEL"),
-                            rs.getString("first_name"),
-                            rs.getString("last_name"),
-                            rs.getString("middle_name"),
-                            rs.getString("phone_number"),
-                            rs.getDate("date_of_birth")
-                    );
+                    client = mapResultSetToClient(rs);
                 }
             }
 
@@ -127,5 +105,16 @@ public class ClientService {
         }
 
         return result;
+    }
+
+    private Client mapResultSetToClient(ResultSet rs) throws SQLException {
+        return new Client(
+                rs.getString("PESEL"),
+                rs.getString("first_name"),
+                rs.getString("last_name"),
+                rs.getString("middle_name"),
+                rs.getString("phone_number"),
+                rs.getDate("date_of_birth")
+        );
     }
 }

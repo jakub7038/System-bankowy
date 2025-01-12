@@ -1,4 +1,16 @@
 CREATE OR REPLACE PACKAGE account_pkg IS
+
+    TYPE account_obj IS RECORD (
+        account_number       CHAR(26),
+        type_of_account      VARCHAR2(50),
+        balance              NUMBER,
+        date_of_creation     DATE,
+        status               VARCHAR2(50),
+        login                VARCHAR2(50)
+    );
+
+    TYPE account_tbl IS TABLE OF account_obj;
+
     PROCEDURE CREATE_ACCOUNT (
         p_account_number IN CHAR,
         p_type_of_account IN VARCHAR2,
@@ -16,14 +28,12 @@ CREATE OR REPLACE PACKAGE account_pkg IS
         p_account_number IN CHAR
     );
 
-    PROCEDURE READ_ALL_ACCOUNTS (
-        p_accounts OUT SYS_REFCURSOR
-    );
+    FUNCTION READ_ALL_ACCOUNTS_FUNC
+    RETURN account_tbl PIPELINED;
 
-    PROCEDURE READ_ACCOUNT_BY_NUMBER (
-        p_account_number IN VARCHAR2,
-        p_account OUT SYS_REFCURSOR
-    );
+    FUNCTION READ_ACCOUNT_BY_NUMBER_FUNC(
+        p_account_number IN CHAR
+    ) RETURN account_tbl PIPELINED;
 
     PROCEDURE UPDATE_PASSWORD (
         p_account_number IN CHAR,
@@ -43,6 +53,7 @@ CREATE OR REPLACE PACKAGE account_pkg IS
         p_password IN VARCHAR2,
         p_login_status OUT VARCHAR2
     );
+
 END account_pkg;
 /
 
@@ -111,35 +122,57 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
         COMMIT;
     END CREATE_CLIENT_ACCOUNT;
 
-    PROCEDURE READ_ALL_ACCOUNTS (
-        p_accounts OUT SYS_REFCURSOR
-    ) IS
+    FUNCTION READ_ALL_ACCOUNTS_FUNC
+    RETURN account_tbl PIPELINED
+    IS
     BEGIN
-        OPEN p_accounts FOR
+        FOR rec IN (
             SELECT account_number, 
                    type_of_account, 
                    balance, 
                    date_of_creation, 
                    status, 
                    login
-            FROM ACCOUNT;
-    END READ_ALL_ACCOUNTS;
+            FROM ACCOUNT
+        ) LOOP
+            PIPE ROW(account_obj(
+                rec.account_number, 
+                rec.type_of_account, 
+                rec.balance, 
+                rec.date_of_creation, 
+                rec.status, 
+                rec.login
+            ));
+        END LOOP;
+        RETURN;
+    END READ_ALL_ACCOUNTS_FUNC;
 
-    PROCEDURE READ_ACCOUNT_BY_NUMBER (
-        p_account_number IN VARCHAR2,
-        p_account OUT SYS_REFCURSOR
-    ) IS
+    FUNCTION READ_ACCOUNT_BY_NUMBER_FUNC(
+        p_account_number IN CHAR
+    ) RETURN account_tbl PIPELINED
+    IS
     BEGIN
-        OPEN p_account FOR
-            SELECT account_number,
-                   type_of_account,
+        FOR rec IN (
+            SELECT account_number, 
+                   type_of_account, 
                    balance, 
                    date_of_creation, 
                    status, 
                    login
             FROM ACCOUNT
-            WHERE account_number = p_account_number;
-    END READ_ACCOUNT_BY_NUMBER;
+            WHERE account_number = p_account_number
+        ) LOOP
+            PIPE ROW(account_obj(
+                rec.account_number, 
+                rec.type_of_account, 
+                rec.balance, 
+                rec.date_of_creation, 
+                rec.status, 
+                rec.login
+            ));
+        END LOOP;
+        RETURN;
+    END READ_ACCOUNT_BY_NUMBER_FUNC;
 
     PROCEDURE UPDATE_PASSWORD (
         p_account_number IN CHAR,

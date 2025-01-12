@@ -1,5 +1,3 @@
-import oracle.jdbc.OracleTypes;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ public class ReceiverService {
             stmt.registerOutParameter(6, Types.VARCHAR);
 
             stmt.execute();
-            result = stmt.getString(6); // Retrieve the result message
+            result = stmt.getString(6);
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -33,18 +31,14 @@ public class ReceiverService {
 
     public List<Receiver> readAllReceivers() {
         List<Receiver> receivers = new ArrayList<>();
-        String sql = "{call receiver_pkg.READ_ALL_RECEIVERS(?)}";
+        String sql = "SELECT * FROM TABLE(receiver_pkg.READ_ALL_RECEIVERS_FUNC())";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-            stmt.registerOutParameter(1, OracleTypes.CURSOR);
-            stmt.execute();
-
-            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
-                while (rs.next()) {
-                    receivers.add(mapResultSetToReceiver(rs));
-                }
+            while (rs.next()) {
+                receivers.add(mapResultSetToReceiver(rs));
             }
 
         } catch (SQLException e) {
@@ -56,16 +50,14 @@ public class ReceiverService {
 
     public List<Receiver> readReceiversByTiedAccount(String accountNumberTied) {
         List<Receiver> receivers = new ArrayList<>();
-        String sql = "{call receiver_pkg.READ_RECEIVER_BY_TIED_ACCOUNT(?, ?)}";
+        String sql = "SELECT * FROM TABLE(receiver_pkg.READ_RECEIVER_BY_TIED_ACCOUNT_FUNC(?))";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             stmt.setString(1, accountNumberTied);
-            stmt.registerOutParameter(2, OracleTypes.CURSOR);
-            stmt.execute();
 
-            try (ResultSet rs = (ResultSet) stmt.getObject(2)) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     receivers.add(mapResultSetToReceiver(rs));
                 }

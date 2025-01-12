@@ -205,5 +205,68 @@ public class Main {
         //card();
         //transaction();
         //receiver();
+
+//        TransactionService transactionService = new TransactionService();
+//
+//        List<Transaction> allTransactions = transactionService.readAllTransactions();
+//        for (Transaction transaction : allTransactions) {
+//            System.out.println(transaction);
+//        }
+//        System.out.println("bruh");
+//        List<Transaction> accountTransactions = transactionService.readTransactionsByAccount("12345");
+//        for (Transaction transaction : accountTransactions) {
+//            System.out.println(transaction);
+//        }
+//
+//        ReceiverService receiverService = new ReceiverService();
+//
+//        List<Receiver> allReceivers = receiverService.readAllReceivers();
+//        for (Receiver receiver : allReceivers) {
+//            System.out.println(receiver);
+//        }
+//        System.out.println("bruh");
+//        List<Receiver> receiversByAccount = receiverService.readReceiversByTiedAccount("1234567890123461");
+//        for (Receiver receiver : receiversByAccount) {
+//            System.out.println(receiver);
+//        }
+//
+//
+//        ClientService clientService = new ClientService();
+//
+//        List<Client> allClients = clientService.readAllClients();
+//        for (Client client : allClients) {
+//            System.out.println(client);
+//        }
+//        System.out.println("bruh");
+//        System.out.println(clientService.readClientByPesel("12345678921"));
+//
+//        CardService cardService = new CardService();
+//
+//        List<Card> allCards = cardService.readAllCards();
+//        for (Card card : allCards) {
+//            System.out.println(card);
+//        }
+//
+//        System.out.println("bruh");
+//        Card cardByNumber = cardService.readCardByNumber("1234567812345678");
+//            System.out.println(cardByNumber);
+//
+//        System.out.println("bruh");
+//        List<Card> cardByAccount = cardService.readCardsByAccountNumber("1234567890123461");
+//        for (Card card : cardByAccount) {
+//            System.out.println(card);
+//        }
+
+        AccountService accountService = new AccountService();
+
+        List<Account> allAccounts = accountService.readAllAccounts();
+        for (Account account : allAccounts) {
+            System.out.println(account);
+        }
+
+        System.out.println("bruh");
+
+        System.out.println(accountService.readAccountByNumber("1234567890123461"));
+
     }
 }

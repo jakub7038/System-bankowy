@@ -1,5 +1,15 @@
 CREATE OR REPLACE PACKAGE receiver_pkg IS
 
+    TYPE receiver_obj IS RECORD (
+        account_number_receiver CHAR(26),
+        account_number_tied     CHAR(26),
+        description             VARCHAR2(255),
+        first_name              VARCHAR2(50),
+        last_name               VARCHAR2(50)
+    );
+
+    TYPE receiver_tbl IS TABLE OF receiver_obj;
+
     PROCEDURE CREATE_RECEIVER(
         p_account_number_receiver IN CHAR,
         p_account_number_tied IN CHAR,
@@ -9,18 +19,16 @@ CREATE OR REPLACE PACKAGE receiver_pkg IS
         p_result OUT VARCHAR2
     );
 
-    PROCEDURE READ_ALL_RECEIVERS(
-        p_cursor OUT SYS_REFCURSOR
-    );
+    FUNCTION READ_ALL_RECEIVERS_FUNC
+    RETURN receiver_tbl PIPELINED;
 
-    PROCEDURE READ_RECEIVER_BY_TIED_ACCOUNT(
-        p_account_number_tied IN CHAR,
-        p_cursor OUT SYS_REFCURSOR
-    );
+    FUNCTION READ_RECEIVER_BY_TIED_ACCOUNT_FUNC(
+        p_account_number_tied IN CHAR
+    ) RETURN receiver_tbl PIPELINED;
 
     PROCEDURE DELETE_RECEIVER(
-        p_account_number_receiver IN RECEIVER.account_number_RECEIVER%TYPE,
-        p_account_number_tied     IN RECEIVER.account_number_TIED%TYPE,
+        p_account_number_receiver IN CHAR,
+        p_account_number_tied     IN CHAR,
         p_result OUT VARCHAR2
     );
 
@@ -60,37 +68,57 @@ CREATE OR REPLACE PACKAGE BODY receiver_pkg IS
             p_result := 'Error creating receiver: ' || SQLERRM;
     END CREATE_RECEIVER;
 
-    PROCEDURE READ_ALL_RECEIVERS(
-        p_cursor OUT SYS_REFCURSOR
-    ) IS
+    FUNCTION READ_ALL_RECEIVERS_FUNC
+    RETURN receiver_tbl PIPELINED
+    IS
     BEGIN
-        OPEN p_cursor FOR
-        SELECT account_number_RECEIVER, 
-               account_number_TIED, 
-               description, 
-               first_name, 
-               last_name 
-        FROM RECEIVER;
-    END READ_ALL_RECEIVERS;
+        FOR rec IN (
+            SELECT account_number_RECEIVER, 
+                   account_number_TIED, 
+                   description, 
+                   first_name, 
+                   last_name 
+            FROM RECEIVER
+        ) LOOP
+            PIPE ROW(receiver_obj(
+                rec.account_number_RECEIVER,
+                rec.account_number_TIED,
+                rec.description,
+                rec.first_name,
+                rec.last_name
+            ));
+        END LOOP;
+        RETURN;
+    END READ_ALL_RECEIVERS_FUNC;
 
-    PROCEDURE READ_RECEIVER_BY_TIED_ACCOUNT(
-        p_account_number_tied IN CHAR,
-        p_cursor OUT SYS_REFCURSOR
-    ) IS
+    FUNCTION READ_RECEIVER_BY_TIED_ACCOUNT_FUNC(
+        p_account_number_tied IN CHAR
+    ) RETURN receiver_tbl PIPELINED
+    IS
     BEGIN
-        OPEN p_cursor FOR
-        SELECT account_number_RECEIVER, 
-               account_number_TIED, 
-               description, 
-               first_name, 
-               last_name
-        FROM RECEIVER
-        WHERE account_number_TIED = p_account_number_tied;
-    END READ_RECEIVER_BY_TIED_ACCOUNT;
+        FOR rec IN (
+            SELECT account_number_RECEIVER, 
+                   account_number_TIED, 
+                   description, 
+                   first_name, 
+                   last_name
+            FROM RECEIVER
+            WHERE account_number_TIED = p_account_number_tied
+        ) LOOP
+            PIPE ROW(receiver_obj(
+                rec.account_number_RECEIVER,
+                rec.account_number_TIED,
+                rec.description,
+                rec.first_name,
+                rec.last_name
+            ));
+        END LOOP;
+        RETURN;
+    END READ_RECEIVER_BY_TIED_ACCOUNT_FUNC;
 
     PROCEDURE DELETE_RECEIVER(
-        p_account_number_receiver IN RECEIVER.account_number_RECEIVER%TYPE,
-        p_account_number_tied     IN RECEIVER.account_number_TIED%TYPE,
+        p_account_number_receiver IN CHAR,
+        p_account_number_tied     IN CHAR,
         p_result OUT VARCHAR2
     ) IS
     BEGIN
@@ -113,3 +141,5 @@ CREATE OR REPLACE PACKAGE BODY receiver_pkg IS
 
 END receiver_pkg;
 /
+
+

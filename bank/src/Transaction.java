@@ -82,7 +82,6 @@ public class Transaction {
         this.description = description;
     }
 
-    // toString method
     @Override
     public String toString() {
         return "Transaction [ID=" + id +

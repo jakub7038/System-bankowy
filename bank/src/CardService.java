@@ -6,104 +6,66 @@ import java.util.List;
 public class CardService {
 
     public List<Card> readAllCards() {
+        String sql = "SELECT * FROM TABLE(card_pkg.READ_ALL_CARDS_FUNC())";
         List<Card> cards = new ArrayList<>();
-        String sql = "{call card_pkg.READ_ALL_CARDS(?)}";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
 
-            stmt.registerOutParameter(1, OracleTypes.CURSOR);
-            stmt.execute();
-
-            try (ResultSet rs = (ResultSet) stmt.getObject(1)) {
-                while (rs.next()) {
-                    Card card = new Card(
-                            rs.getString("card_number"),
-                            rs.getDate("date_of_expiration"),
-                            rs.getDouble("daily_limit"),
-                            rs.getDouble("single_payment_limit"),
-                            rs.getString("CVV"),
-                            rs.getInt("is_active") == 1,
-                            rs.getString("account_number"),
-                            rs.getString("PIN")
-                    );
-                    cards.add(card);
-                }
+            while (rs.next()) {
+                cards.add(mapResultSetToCard(rs));
             }
-
         } catch (SQLException e) {
-            System.err.println("Error reading all cards: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return cards;
     }
 
     public Card readCardByNumber(String cardNumber) {
+        String sql = "SELECT * FROM TABLE(card_pkg.READ_CARD_BY_NUMBER(?))";
         Card card = null;
-        String sql = "{call card_pkg.READ_CARD_BY_NUMBER(?, ?)}";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             stmt.setString(1, cardNumber);
-            stmt.registerOutParameter(2, OracleTypes.CURSOR);
-            stmt.execute();
 
-            try (ResultSet rs = (ResultSet) stmt.getObject(2)) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    card = new Card(
-                            rs.getString("card_number"),
-                            rs.getDate("date_of_expiration"),
-                            rs.getDouble("daily_limit"),
-                            rs.getDouble("single_payment_limit"),
-                            rs.getString("CVV"),
-                            rs.getInt("is_active") == 1,
-                            rs.getString("account_number"),
-                            rs.getString("PIN")
-                    );
+                    card = mapResultSetToCard(rs);
                 }
             }
-
         } catch (SQLException e) {
-            System.err.println("Error reading card by number: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return card;
     }
 
     public List<Card> readCardsByAccountNumber(String accountNumber) {
+        String sql = "SELECT * FROM TABLE(card_pkg.READ_CARD_BY_ACCOUNT_NUMBER(?))";
         List<Card> cards = new ArrayList<>();
-        String sql = "{call card_pkg.READ_CARD_BY_ACCOUNT_NUMBER(?, ?)}";
 
         try (Connection connection = DatabaseConfig.getConnection();
-             CallableStatement stmt = connection.prepareCall(sql)) {
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
 
             stmt.setString(1, accountNumber);
-            stmt.registerOutParameter(2, OracleTypes.CURSOR);
-            stmt.execute();
 
-            try (ResultSet rs = (ResultSet) stmt.getObject(2)) {
+            try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Card card = new Card(
-                            rs.getString("card_number"),
-                            rs.getDate("date_of_expiration"),
-                            rs.getDouble("daily_limit"),
-                            rs.getDouble("single_payment_limit"),
-                            rs.getString("CVV"),
-                            rs.getInt("is_active") == 1,
-                            rs.getString("account_number"),
-                            rs.getString("PIN")
-                    );
-                    cards.add(card);
+                    cards.add(mapResultSetToCard(rs));
                 }
             }
-
         } catch (SQLException e) {
-            System.err.println("Error reading card by account number: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return cards;
     }
+
 
     public String createCard(String cardNumber, Date expirationDate, double dailyLimit, double singlePaymentLimit,
                              String cvv, boolean isActive, String accountNumber, String pin) {
@@ -191,5 +153,18 @@ public class CardService {
         }
 
         return result;
+    }
+
+    private Card mapResultSetToCard(ResultSet rs) throws SQLException {
+        return new Card(
+                rs.getString("card_number"),
+                rs.getDate("date_of_expiration"),
+                rs.getDouble("daily_limit"),
+                rs.getDouble("single_payment_limit"),
+                rs.getString("CVV"),
+                rs.getInt("is_active") == 1,
+                rs.getString("account_number"),
+                rs.getString("PIN")
+        );
     }
 }
