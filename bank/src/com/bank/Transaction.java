@@ -86,12 +86,18 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "com.bank.Transaction [ID=" + id +
-                ", com.bank.Account Number=" + accountNumber +
-                ", com.bank.Receiver com.bank.Account=" + accountNumberReceiver +
-                ", Date=" + dateOfTransaction +
-                ", Amount=" + amount +
-                ", Type=" + typeOfTransaction +
-                ", Description=" + description + "]";
+        return "ID Transakcji=" +String.valueOf(id).trim()  +
+                ", Numer konta=" + String.valueOf(accountNumber).trim() +
+                ", Numer odbiorcy=" +  String.valueOf( accountNumberReceiver).trim() +
+                ", Data=" +  String.valueOf(dateOfTransaction).trim() +
+                ", Kwota transakcji=" +  String.valueOf(amount).trim() +
+                ", Typ transakcji=" +  String.valueOf(typeOfTransaction).trim() +
+                ", Opis transakcji=" +  String.valueOf(description).trim();
+    }
+    public String display(){
+        return "Numer konta odbiorcy: " + String.valueOf( accountNumberReceiver).trim() +
+                ", Data: " + String.valueOf(dateOfTransaction).trim() +
+                ", Kwota: " + String.valueOf(amount).trim() +
+                ", Opis: "+ String.valueOf(description).trim();
     }
 }

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class ReceiverService {
 
-    public String createReceiver(Receiver receiver) {
+    static public String createReceiver(Receiver receiver) {
         String result;
         String sql = "{call receiver_pkg.CREATE_RECEIVER(?, ?, ?, ?, ?, ?)}";
 
@@ -31,7 +31,7 @@ public class ReceiverService {
         return result;
     }
 
-    public List<Receiver> readAllReceivers() {
+    static public List<Receiver> readAllReceivers() {
         List<Receiver> receivers = new ArrayList<>();
         String sql = "SELECT * FROM TABLE(receiver_pkg.READ_ALL_RECEIVERS_FUNC())";
 
@@ -50,7 +50,7 @@ public class ReceiverService {
         return receivers;
     }
 
-    public List<Receiver> readReceiversByTiedAccount(String accountNumberTied) {
+    static public List<Receiver> readReceiversByTiedAccount(String accountNumberTied) {
         List<Receiver> receivers = new ArrayList<>();
         String sql = "SELECT * FROM TABLE(receiver_pkg.READ_RECEIVER_BY_TIED_ACCOUNT_FUNC(?))";
 
@@ -72,7 +72,7 @@ public class ReceiverService {
         return receivers;
     }
 
-    public String deleteReceiver(String accountNumberReceiver, String accountNumberTied) {
+    static public String deleteReceiver(String accountNumberReceiver, String accountNumberTied) {
         String result;
         String sql = "{call receiver_pkg.DELETE_RECEIVER(?, ?, ?)}";
 
@@ -94,7 +94,7 @@ public class ReceiverService {
         return result;
     }
 
-    private Receiver mapResultSetToReceiver(ResultSet rs) throws SQLException {
+    static private Receiver mapResultSetToReceiver(ResultSet rs) throws SQLException {
         return new Receiver(
                 rs.getString("account_number_RECEIVER"),
                 rs.getString("account_number_TIED"),

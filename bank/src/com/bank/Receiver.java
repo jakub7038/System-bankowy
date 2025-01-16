@@ -68,4 +68,11 @@ public class Receiver {
                 ", Name=" + firstName +
                 ", lastname= " + lastName + "]";
     }
+
+    public String display() {
+        return "Imię: " + firstName +
+                ", Nazwisko: " +  lastName +
+                "Opis: " + description +
+                "Numer konta: " + accountNumberReceiver;
+    }
 }

@@ -129,6 +129,7 @@ public class CardService {
             stmt.execute();
 
             result = stmt.getString(3);
+            System.out.println(result);
         } catch (SQLException e) {
             result = "Error updating card status: " + e.getMessage();
         }

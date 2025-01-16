@@ -216,13 +216,14 @@ public class Main extends Application{
     }
 
     public static void main(String[] args) {
-        launch(args);
+        launch(args);  //LAUNCH GUI !!!
 
-        client();
-        account();
-        card();
-        transaction();
-        receiver();
+//
+//        client();
+//        account();
+//        card();
+//        transaction();
+//        receiver();
 
 //        com.bank.TransactionService transactionService = new com.bank.TransactionService();
 //
@@ -275,16 +276,13 @@ public class Main extends Application{
 //            System.out.println(card);
 //        }
 
-        AccountService accountService = new AccountService();
-
-        List<Account> allAccounts = accountService.readAllAccounts();
-        for (Account account : allAccounts) {
-            System.out.println(account);
-        }
-
-        System.out.println("bruh");
-
-        System.out.println(accountService.readAccountByNumber("1234567890123461"));
+//        AccountService accountService = new AccountService();
+//
+//        List<Account> allAccounts = accountService.readAllAccounts();
+//        for (Account account : allAccounts) {
+//            System.out.println(account);
+//        }
+//        System.out.println(accountService.readAccountByNumber("1234567890123461"));
 
     }
 }

@@ -97,12 +97,21 @@ public class Card {
 
     @Override
     public String toString() {
-        return "Numer karty" + cardNumber +
-                ", Expiration Date=" + expirationDate +
-                ", Daily Limit=" + dailyLimit +
-                ", Single Payment Limit=" + singlePaymentLimit +
-                ", CVV=" + cvv +
-                ", Active=" + isActive +
-                ", com.bank.Account Number=" + accountNumber + "]";
+        return "Numer karty" +  String.valueOf(cardNumber).trim() +
+                ", Data wygaśnięcia=" +  String.valueOf(expirationDate).trim() +
+                ", Dzienny limit=" +  String.valueOf(dailyLimit).trim() +
+                ", Limit pojedyńczej płatności=" +  String.valueOf(singlePaymentLimit).trim() +
+                ", CVV=" +  String.valueOf(cvv).trim() +
+                ", Czy aktywna=" + (isActive ? "Tak" : "Nie") +
+                ", Numer konta przypisanego do karty=" +  String.valueOf(accountNumber).trim();
+    }
+    public String display(){
+        return "Numer karty: " + String.valueOf(cardNumber).trim() +
+                ", Data wygaśnięcia: " + String.valueOf(expirationDate).trim() +
+                ", Dzienny limit=" +  String.valueOf(dailyLimit).trim() +
+                ", Limit pojedyńczej płatności=" +  String.valueOf(singlePaymentLimit).trim() +
+                ", CVV=" +  String.valueOf(cvv).trim() +
+                ", " + (isActive ? "Aktywna" : "Nie aktywna");
     }
 }
+//String.valueOf(isActive).trim()
