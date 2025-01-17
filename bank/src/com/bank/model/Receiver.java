@@ -1,4 +1,4 @@
-package com.bank;
+package com.bank.model;
 
 public class Receiver {
 
@@ -62,8 +62,8 @@ public class Receiver {
 
     @Override
     public String toString() {
-        return "com.bank.Receiver [com.bank.Receiver com.bank.Account=" + accountNumberReceiver +
-                ", Tied com.bank.Account=" + accountNumberTied +
+        return "com.bank.model.Receiver [com.bank.model.Receiver com.bank.model.Account=" + accountNumberReceiver +
+                ", Tied com.bank.model.Account=" + accountNumberTied +
                 ", Description=" + description +
                 ", Name=" + firstName +
                 ", lastname= " + lastName + "]";

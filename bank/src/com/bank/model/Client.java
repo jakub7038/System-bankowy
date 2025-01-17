@@ -1,4 +1,4 @@
-package com.bank;
+package com.bank.model;
 
 import java.util.Date;
 
@@ -75,7 +75,7 @@ public class Client {
 
     @Override
     public String toString() {
-        return "com.bank.Client [PESEL=" + pesel +
+        return "com.bank.model.Client [PESEL=" + pesel +
                 ", Name=" + firstName +
                 ", Last name=" + lastName +
                 ", Middle Name=" + middleName +

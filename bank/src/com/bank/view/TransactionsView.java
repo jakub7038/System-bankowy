@@ -1,7 +1,7 @@
 package com.bank.view;
 
-import com.bank.Transaction;
-import com.bank.TransactionService;
+import com.bank.model.Transaction;
+import com.bank.model.TransactionService;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;

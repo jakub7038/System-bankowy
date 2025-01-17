@@ -4,4 +4,5 @@ module com.bank {
     requires java.sql;
     requires com.oracle.database.jdbc;
     exports com.bank;
+    exports com.bank.model;
 }

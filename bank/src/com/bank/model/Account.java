@@ -1,4 +1,4 @@
-package com.bank;
+package com.bank.model;
 
 import java.sql.Date;
 
@@ -69,7 +69,7 @@ public class Account {
 
     @Override
     public String toString() {
-        return "com.bank.Account Number: " + accountNumber + "," +
+        return "com.bank.model.Account Number: " + accountNumber + "," +
                 " Type: " + typeOfAccount +
                 ", Balance: " + balance +
                 ", Date: " + dateOfCreation +

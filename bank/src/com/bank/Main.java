@@ -4,10 +4,9 @@ import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.List;
 
+import com.bank.model.*;
 import com.bank.view.LoginApp;
 import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 public class Main extends Application{
@@ -32,7 +31,7 @@ public class Main extends Application{
         String creationResult = service.createAccount(
                 "12345", "Savings", 1000.0, Date.valueOf("2025-01-05"), "Active", "jdoe", "password123", "12345678901"
         );
-        System.out.println("com.bank.Account creation result: " + creationResult);
+        System.out.println("com.bank.model.Account creation result: " + creationResult);
 
         System.out.println("\nUpdating password:");
         String updatePasswordResult = service.updatePassword("12345", "password123", "newpassword123");
@@ -73,7 +72,7 @@ public class Main extends Application{
         if (client != null) {
             System.out.println(client);
         } else {
-            System.out.println("com.bank.Client not found.");
+            System.out.println("com.bank.model.Client not found.");
         }
 
         String updateFirstNameResult = clientService.updateClientFirstName("12345678901", "Jonathan");
@@ -93,7 +92,7 @@ public class Main extends Application{
         if (updatedClient != null) {
             System.out.println(updatedClient);
         } else {
-            System.out.println("com.bank.Client not found.");
+            System.out.println("com.bank.model.Client not found.");
         }
     }
 
@@ -123,7 +122,7 @@ public class Main extends Application{
         if (cardByNumber != null) {
             System.out.println(cardByNumber);
         } else {
-            System.out.println("com.bank.Card not found.");
+            System.out.println("com.bank.model.Card not found.");
         }
 
         System.out.println("Reading cards linked to account number 9876543210:");
@@ -146,7 +145,7 @@ public class Main extends Application{
         if (updatedCard != null) {
             System.out.println(updatedCard);
         } else {
-            System.out.println("com.bank.Card not found.");
+            System.out.println("com.bank.model.Card not found.");
         }
     }
 
@@ -225,54 +224,54 @@ public class Main extends Application{
 //        transaction();
 //        receiver();
 
-//        com.bank.TransactionService transactionService = new com.bank.TransactionService();
+//        com.bank.model.TransactionService transactionService = new com.bank.model.TransactionService();
 //
-//        List<com.bank.Transaction> allTransactions = transactionService.readAllTransactions();
-//        for (com.bank.Transaction transaction : allTransactions) {
+//        List<com.bank.model.Transaction> allTransactions = transactionService.readAllTransactions();
+//        for (com.bank.model.Transaction transaction : allTransactions) {
 //            System.out.println(transaction);
 //        }
 //        System.out.println("bruh");
-//        List<com.bank.Transaction> accountTransactions = transactionService.readTransactionsByAccount("12345");
-//        for (com.bank.Transaction transaction : accountTransactions) {
+//        List<com.bank.model.Transaction> accountTransactions = transactionService.readTransactionsByAccount("12345");
+//        for (com.bank.model.Transaction transaction : accountTransactions) {
 //            System.out.println(transaction);
 //        }
 //
-//        com.bank.ReceiverService receiverService = new com.bank.ReceiverService();
+//        com.bank.model.ReceiverService receiverService = new com.bank.model.ReceiverService();
 //
-//        List<com.bank.Receiver> allReceivers = receiverService.readAllReceivers();
-//        for (com.bank.Receiver receiver : allReceivers) {
+//        List<com.bank.model.Receiver> allReceivers = receiverService.readAllReceivers();
+//        for (com.bank.model.Receiver receiver : allReceivers) {
 //            System.out.println(receiver);
 //        }
 //        System.out.println("bruh");
-//        List<com.bank.Receiver> receiversByAccount = receiverService.readReceiversByTiedAccount("1234567890123461");
-//        for (com.bank.Receiver receiver : receiversByAccount) {
+//        List<com.bank.model.Receiver> receiversByAccount = receiverService.readReceiversByTiedAccount("1234567890123461");
+//        for (com.bank.model.Receiver receiver : receiversByAccount) {
 //            System.out.println(receiver);
 //        }
 //
 //
-//        com.bank.ClientService clientService = new com.bank.ClientService();
+//        com.bank.model.ClientService clientService = new com.bank.model.ClientService();
 //
-//        List<com.bank.Client> allClients = clientService.readAllClients();
-//        for (com.bank.Client client : allClients) {
+//        List<com.bank.model.Client> allClients = clientService.readAllClients();
+//        for (com.bank.model.Client client : allClients) {
 //            System.out.println(client);
 //        }
 //        System.out.println("bruh");
 //        System.out.println(clientService.readClientByPesel("12345678921"));
 //
-//        com.bank.CardService cardService = new com.bank.CardService();
+//        com.bank.model.CardService cardService = new com.bank.model.CardService();
 //
-//        List<com.bank.Card> allCards = cardService.readAllCards();
-//        for (com.bank.Card card : allCards) {
+//        List<com.bank.model.Card> allCards = cardService.readAllCards();
+//        for (com.bank.model.Card card : allCards) {
 //            System.out.println(card);
 //        }
 //
 //        System.out.println("bruh");
-//        com.bank.Card cardByNumber = cardService.readCardByNumber("1234567812345678");
+//        com.bank.model.Card cardByNumber = cardService.readCardByNumber("1234567812345678");
 //            System.out.println(cardByNumber);
 //
 //        System.out.println("bruh");
-//        List<com.bank.Card> cardByAccount = cardService.readCardsByAccountNumber("1234567890123461");
-//        for (com.bank.Card card : cardByAccount) {
+//        List<com.bank.model.Card> cardByAccount = cardService.readCardsByAccountNumber("1234567890123461");
+//        for (com.bank.model.Card card : cardByAccount) {
 //            System.out.println(card);
 //        }
 

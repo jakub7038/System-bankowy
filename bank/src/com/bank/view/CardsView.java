@@ -1,7 +1,7 @@
 package com.bank.view;
 
-import com.bank.Card;
-import com.bank.CardService;
+import com.bank.model.Card;
+import com.bank.model.CardService;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;

@@ -1,11 +1,8 @@
 package com.bank.view;
 
-import com.bank.Client;
-import com.bank.ClientService;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.VBox;
-import java.util.List;
 
 public class CustomersView {
     static public Tab customerInfoTab(){
