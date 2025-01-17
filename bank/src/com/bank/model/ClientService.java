@@ -49,6 +49,27 @@ public class ClientService {
         return clients;
     }
 
+    public static List<Client> readClientsByAccount(String accountNumber) {
+        List<Client> clients = new ArrayList<>();
+        String sql = "SELECT * FROM TABLE(client_pkg.READ_CLIENTS_BY_ACCOUNT(?))";
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setString(1, accountNumber);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    clients.add(mapResultSetToClient(rs));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error reading clients by account number: " + e.getMessage());
+        }
+
+        return clients;
+    }
+
     static public Client readClientByPesel(String pesel) {
         Client client = null;
         String sql = "SELECT * FROM TABLE(client_pkg.READ_CLIENT_BY_PESEL(?))";

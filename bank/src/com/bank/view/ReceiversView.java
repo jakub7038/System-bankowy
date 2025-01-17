@@ -50,7 +50,7 @@ public class ReceiversView {
                         Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
                         confirmDialog.setTitle("Potwierdzenie usunięcia");
                         confirmDialog.setHeaderText("Czy na pewno chcesz usunąć tego odbiorce?");
-                        confirmDialog.setContentText(selectedReceiver.toString());
+                        confirmDialog.setContentText(selectedReceiver.display());
 
                         Optional<ButtonType> result = confirmDialog.showAndWait();
                         if (result.isPresent() && result.get() == ButtonType.OK) {
