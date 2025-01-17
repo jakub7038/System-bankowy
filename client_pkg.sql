@@ -25,6 +25,8 @@ CREATE OR REPLACE PACKAGE client_pkg IS
 
     FUNCTION READ_CLIENT_BY_PESEL (p_pesel IN CHAR) RETURN client_tbl PIPELINED;
 
+    FUNCTION READ_CLIENTS_BY_ACCOUNT (p_account_number IN CHAR) RETURN client_tbl PIPELINED;
+
     PROCEDURE UPDATE_FIRST_NAME (
         p_pesel IN CHAR,
         p_value IN VARCHAR2,
@@ -125,6 +127,33 @@ CREATE OR REPLACE PACKAGE BODY client_pkg IS
         END LOOP;
         RETURN;
     END READ_CLIENT_BY_PESEL;
+
+    FUNCTION READ_CLIENTS_BY_ACCOUNT (
+        p_account_number IN CHAR
+    ) RETURN client_tbl PIPELINED IS
+    BEGIN
+        FOR rec IN (
+            SELECT c.PESEL,
+                   c.first_name,
+                   c.last_name,
+                   c.middle_name,
+                   c.phone_number,
+                   c.date_of_birth
+            FROM CLIENT c
+            INNER JOIN CLIENT_ACCOUNT ca ON c.PESEL = ca.pesel
+            WHERE ca.account_number = p_account_number
+        ) LOOP
+            PIPE ROW(client_obj(
+                rec.PESEL,
+                rec.first_name,
+                rec.last_name,
+                rec.middle_name,
+                rec.phone_number,
+                rec.date_of_birth
+            ));
+        END LOOP;
+        RETURN;
+    END READ_CLIENTS_BY_ACCOUNT;
 
     PROCEDURE UPDATE_FIRST_NAME (
         p_pesel IN CHAR,
