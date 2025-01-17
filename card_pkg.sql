@@ -14,8 +14,6 @@ CREATE OR REPLACE PACKAGE card_pkg IS
     TYPE card_table IS TABLE OF card_type;
 
     PROCEDURE CREATE_CARD (
-        p_card_number IN VARCHAR2,
-        p_date_of_expiration IN DATE,
         p_daily_limit IN NUMBER,
         p_single_payment_limit IN NUMBER,
         p_CVV IN VARCHAR2,
@@ -56,8 +54,6 @@ END card_pkg;
 CREATE OR REPLACE PACKAGE BODY card_pkg IS
 
     PROCEDURE CREATE_CARD (
-        p_card_number IN VARCHAR2,
-        p_date_of_expiration IN DATE,
         p_daily_limit IN NUMBER,
         p_single_payment_limit IN NUMBER,
         p_CVV IN VARCHAR2,
@@ -66,7 +62,13 @@ CREATE OR REPLACE PACKAGE BODY card_pkg IS
         p_PIN IN VARCHAR2,
         p_result OUT VARCHAR2
     ) IS
+        v_card_number   VARCHAR2(16);
+        v_date_of_expiration DATE;
     BEGIN
+        v_card_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 9999999999999999)), 16, '0');
+
+        v_date_of_expiration := ADD_MONTHS(SYSDATE, 60);
+
         INSERT INTO CARD (
             card_number, 
             date_of_expiration, 
@@ -77,8 +79,8 @@ CREATE OR REPLACE PACKAGE BODY card_pkg IS
             account_number,
             PIN
         ) VALUES (
-            p_card_number, 
-            p_date_of_expiration, 
+            v_card_number, 
+            v_date_of_expiration, 
             p_daily_limit, 
             p_single_payment_limit, 
             p_CVV, 
@@ -124,19 +126,19 @@ CREATE OR REPLACE PACKAGE BODY card_pkg IS
     END READ_CARD_BY_NUMBER;
 
     FUNCTION READ_CARD_BY_ACCOUNT_NUMBER (p_account_number IN VARCHAR2) RETURN card_table PIPELINED IS
-BEGIN
-    FOR r IN (SELECT card_number, date_of_expiration, daily_limit, 
+    BEGIN
+        FOR r IN (SELECT card_number, date_of_expiration, daily_limit, 
                       single_payment_limit, CVV, is_active, 
                       account_number, PIN
                 FROM CARD
-                WHERE account_number = TO_NUMBER(p_account_number))
-    LOOP
-        PIPE ROW (card_type(r.card_number, r.date_of_expiration, r.daily_limit,
-                            r.single_payment_limit, r.CVV, r.is_active,
-                            r.account_number, r.PIN));
-    END LOOP;
-    RETURN;
-END READ_CARD_BY_ACCOUNT_NUMBER;
+                WHERE account_number = p_account_number) 
+        LOOP
+            PIPE ROW (card_type(r.card_number, r.date_of_expiration, r.daily_limit,
+                                r.single_payment_limit, r.CVV, r.is_active,
+                                r.account_number, r.PIN));
+        END LOOP;
+        RETURN;
+    END READ_CARD_BY_ACCOUNT_NUMBER;
 
     PROCEDURE UPDATE_CARD_LIMITS (
         p_card_number IN VARCHAR2,
@@ -193,6 +195,3 @@ END READ_CARD_BY_ACCOUNT_NUMBER;
 
 END card_pkg;
 /
-
-
-

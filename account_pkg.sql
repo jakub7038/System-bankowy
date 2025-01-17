@@ -11,47 +11,45 @@ CREATE OR REPLACE PACKAGE account_pkg IS
 
     TYPE account_tbl IS TABLE OF account_obj;
 
-    PROCEDURE CREATE_ACCOUNT (
-        p_account_number IN CHAR,
-        p_type_of_account IN VARCHAR2,
-        p_balance IN NUMBER,
-        p_date_of_creation IN DATE,
-        p_status IN VARCHAR2,
-        p_login IN VARCHAR2,
-        p_password IN VARCHAR2,
-        p_pesel IN CHAR,
-        p_result OUT VARCHAR2
+    PROCEDURE create_account (
+        p_type_of_account   IN VARCHAR2,
+        p_balance           IN NUMBER,
+        p_status            IN VARCHAR2,
+        p_login             IN VARCHAR2,
+        p_password          IN VARCHAR2,
+        p_pesel             IN CHAR,
+        p_result            OUT VARCHAR2
     );
 
-    PROCEDURE CREATE_CLIENT_ACCOUNT(
-        p_pesel IN CHAR,
-        p_account_number IN CHAR
+    PROCEDURE create_client_account(
+        p_pesel            IN CHAR,
+        p_account_number   IN CHAR
     );
 
-    FUNCTION READ_ALL_ACCOUNTS_FUNC
+    FUNCTION read_all_accounts_func
     RETURN account_tbl PIPELINED;
 
-    FUNCTION READ_ACCOUNT_BY_NUMBER_FUNC(
-        p_account_number IN CHAR
+    FUNCTION read_account_by_number_func(
+        p_account_number   IN CHAR
     ) RETURN account_tbl PIPELINED;
 
-    PROCEDURE UPDATE_PASSWORD (
-        p_account_number IN CHAR,
-        p_old_password IN VARCHAR2,
-        p_new_password IN VARCHAR2,
-        p_result OUT VARCHAR2
+    PROCEDURE update_password (
+        p_account_number   IN CHAR,
+        p_old_password     IN VARCHAR2,
+        p_new_password     IN VARCHAR2,
+        p_result           OUT VARCHAR2
     );
 
-    PROCEDURE UPDATE_LOGIN (
-        p_account_number IN CHAR,
-        p_new_login IN VARCHAR2,
-        p_result OUT VARCHAR2
+    PROCEDURE update_login (
+        p_account_number   IN CHAR,
+        p_new_login        IN VARCHAR2,
+        p_result           OUT VARCHAR2
     );
 
-    PROCEDURE LOGIN (
-        p_username IN VARCHAR2,
-        p_password IN VARCHAR2,
-        p_login_status OUT VARCHAR2
+    PROCEDURE login (
+        p_username         IN VARCHAR2,
+        p_password         IN VARCHAR2,
+        p_login_status     OUT VARCHAR2
     );
 
 END account_pkg;
@@ -59,21 +57,24 @@ END account_pkg;
 
 CREATE OR REPLACE PACKAGE BODY account_pkg IS
 
-    PROCEDURE CREATE_ACCOUNT (
-        p_account_number IN CHAR,
-        p_type_of_account IN VARCHAR2,
-        p_balance IN NUMBER,
-        p_date_of_creation IN DATE,
-        p_status IN VARCHAR2,
-        p_login IN VARCHAR2,
-        p_password IN VARCHAR2,
-        p_pesel IN CHAR,
-        p_result OUT VARCHAR2
+    PROCEDURE create_account (
+        p_type_of_account   IN VARCHAR2,
+        p_balance           IN NUMBER,
+        p_status            IN VARCHAR2,
+        p_login             IN VARCHAR2,
+        p_password          IN VARCHAR2,
+        p_pesel             IN CHAR,
+        p_result            OUT VARCHAR2
     ) IS
-        hashed_password VARCHAR2(64);
-        salt RAW(32);
+        v_account_number   CHAR(26);
+        hashed_password    VARCHAR2(64);
+        salt               RAW(32);
     BEGIN
+        v_account_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 999999999999999999)), 18, '0') ||
+                            TO_CHAR(SYSDATE, 'YYYYMMDDHH24MI');
+
         salt := DBMS_CRYPTO.RANDOMBYTES(16);
+
         hashed_password := RAWTOHEX(
             DBMS_CRYPTO.HASH(
                 UTL_RAW.CAST_TO_RAW(p_password) || salt,
@@ -91,17 +92,17 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
             password,
             salt
         ) VALUES (
-            p_account_number,
+            v_account_number,
             p_type_of_account,
             p_balance,
-            p_date_of_creation,
+            SYSDATE,
             p_status,
             p_login,
             hashed_password,
             salt
         );
 
-        CREATE_CLIENT_ACCOUNT(p_pesel => p_pesel, p_account_number => p_account_number);
+        create_client_account(p_pesel => p_pesel, p_account_number => v_account_number);
 
         COMMIT;
         p_result := 'Account created successfully.';
@@ -109,20 +110,20 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
         WHEN OTHERS THEN
             ROLLBACK;
             p_result := 'Error creating account: ' || SQLERRM;
-    END CREATE_ACCOUNT;
+    END create_account;
 
-    PROCEDURE CREATE_CLIENT_ACCOUNT(
-        p_pesel IN CHAR,
-        p_account_number IN CHAR
+    PROCEDURE create_client_account(
+        p_pesel            IN CHAR,
+        p_account_number   IN CHAR
     ) IS
     BEGIN
         INSERT INTO CLIENT_ACCOUNT (PESEL, account_number)
         VALUES (p_pesel, p_account_number);
 
         COMMIT;
-    END CREATE_CLIENT_ACCOUNT;
+    END create_client_account;
 
-    FUNCTION READ_ALL_ACCOUNTS_FUNC
+    FUNCTION read_all_accounts_func
     RETURN account_tbl PIPELINED
     IS
     BEGIN
@@ -145,10 +146,10 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
             ));
         END LOOP;
         RETURN;
-    END READ_ALL_ACCOUNTS_FUNC;
+    END read_all_accounts_func;
 
-    FUNCTION READ_ACCOUNT_BY_NUMBER_FUNC(
-        p_account_number IN CHAR
+    FUNCTION read_account_by_number_func(
+        p_account_number   IN CHAR
     ) RETURN account_tbl PIPELINED
     IS
     BEGIN
@@ -172,18 +173,18 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
             ));
         END LOOP;
         RETURN;
-    END READ_ACCOUNT_BY_NUMBER_FUNC;
+    END read_account_by_number_func;
 
-    PROCEDURE UPDATE_PASSWORD (
-        p_account_number IN CHAR,
-        p_old_password IN VARCHAR2,
-        p_new_password IN VARCHAR2,
-        p_result OUT VARCHAR2
+    PROCEDURE update_password (
+        p_account_number   IN CHAR,
+        p_old_password     IN VARCHAR2,
+        p_new_password     IN VARCHAR2,
+        p_result           OUT VARCHAR2
     ) IS
         hashed_old_password VARCHAR2(64);
         hashed_new_password VARCHAR2(64);
-        stored_password VARCHAR2(64);
-        salt RAW(32);
+        stored_password     VARCHAR2(64);
+        salt                RAW(32);
     BEGIN
         SELECT salt, password
         INTO salt, stored_password
@@ -210,8 +211,7 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
         );
 
         UPDATE ACCOUNT
-        SET 
-            password = hashed_new_password
+        SET password = hashed_new_password
         WHERE account_number = p_account_number;
 
         COMMIT;
@@ -220,9 +220,9 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
         WHEN OTHERS THEN
             ROLLBACK;
             p_result := 'Error updating password: ' || SQLERRM;
-    END UPDATE_PASSWORD;
+    END update_password;
 
-    PROCEDURE UPDATE_LOGIN (
+PROCEDURE UPDATE_LOGIN (
         p_account_number IN CHAR,
         p_new_login IN VARCHAR2,
         p_result OUT VARCHAR2
@@ -253,38 +253,40 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
     END UPDATE_LOGIN;
 
     PROCEDURE LOGIN (
-        p_username IN VARCHAR2,
-        p_password IN VARCHAR2,
-        p_login_status OUT VARCHAR2
-    ) IS
-        stored_hashed_password VARCHAR2(64);
-        stored_salt RAW(32);
-        input_hashed_password VARCHAR2(64);
+    p_username IN VARCHAR2,
+    p_password IN VARCHAR2,
+    p_login_status OUT VARCHAR2
+) IS
+    stored_hashed_password VARCHAR2(64);
+    stored_salt RAW(32);
+    input_hashed_password VARCHAR2(64);
+    account_number NUMBER;
+BEGIN
     BEGIN
-        BEGIN
-            SELECT password, salt
-            INTO stored_hashed_password, stored_salt
-            FROM ACCOUNT
-            WHERE login = p_username;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                p_login_status := 'Invalid username or password';
-                RETURN;
-        END;
-
-        input_hashed_password := RAWTOHEX(
-            DBMS_CRYPTO.HASH(
-                UTL_RAW.CAST_TO_RAW(p_password) || stored_salt,
-                DBMS_CRYPTO.HASH_SH256
-            )
-        );
-
-        IF input_hashed_password != stored_hashed_password THEN
+        SELECT password, salt, account_number
+        INTO stored_hashed_password, stored_salt, account_number
+        FROM ACCOUNT
+        WHERE login = p_username;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
             p_login_status := 'Invalid username or password';
-        ELSE
-            p_login_status := 'Login successful';
-        END IF;
-    END LOGIN;
+            RETURN;
+    END;
+
+    input_hashed_password := RAWTOHEX(
+        DBMS_CRYPTO.HASH(
+            UTL_RAW.CAST_TO_RAW(p_password) || stored_salt,
+            DBMS_CRYPTO.HASH_SH256
+        )
+    );
+
+    IF input_hashed_password != stored_hashed_password THEN
+        p_login_status := 'Invalid username or password';
+    ELSE
+        p_login_status := 'Login successful, Account Number: ' || account_number;
+    END IF;
+END LOGIN;
 
 END account_pkg;
 /
+
