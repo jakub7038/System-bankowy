@@ -102,6 +102,7 @@ public class Card {
                 ", Dzienny limit=" +  String.valueOf(dailyLimit).trim() +
                 ", Limit pojedyńczej płatności=" +  String.valueOf(singlePaymentLimit).trim() +
                 ", CVV=" +  String.valueOf(cvv).trim() +
+                ", PIN= " + String.valueOf(pin).trim() +
                 ", Czy aktywna=" + (isActive ? "Tak" : "Nie") +
                 ", Numer konta przypisanego do karty=" +  String.valueOf(accountNumber).trim();
     }

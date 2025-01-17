@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.bank.view.MainApp.current_login_account_number;
 
@@ -27,8 +28,9 @@ public class CardsView {
 
         Button toggleActiveButton = new Button();
         Button changeLimitsButton = new Button("Zmień limity");
+        Button changePinButton = new Button("Zmień PIN");
 
-        buttonContainer.getChildren().addAll(toggleActiveButton, changeLimitsButton);
+        buttonContainer.getChildren().addAll(toggleActiveButton, changeLimitsButton, changePinButton);
 
         // Obsługa wyboru karty z listy
         cardsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -40,8 +42,9 @@ public class CardsView {
 
                     // Akcja dla przycisku aktywacji/dezaktywacji
                     toggleActiveButton.setOnAction(event -> {
-                        selectedCard.setActive(!selectedCard.isActive());
+                        System.out.println(selectedCard.isActive());
                         CardService.updateCardStatus(selectedCard.getCardNumber(), !selectedCard.isActive());
+                        selectedCard.setActive(!selectedCard.isActive());
                         updateCardsList(cardsListView);
                     });
 
@@ -49,6 +52,11 @@ public class CardsView {
                     changeLimitsButton.setOnAction(event -> {
                         showChangeLimitsWindow(selectedCard, cardsListView);
                     });
+
+                    changePinButton.setOnAction(event -> {
+                        showChangePinWindow(selectedCard, cardsListView);
+                    });
+
                 }
             } else {
                 buttonContainer.setVisible(false);
@@ -61,6 +69,7 @@ public class CardsView {
         cardsTab.setClosable(false);
         return cardsTab;
     }
+
 
     private static void updateCardsList(ListView<String> listView) {
         List<Card> cards = CardService.readCardsByAccountNumber(String.valueOf(current_login_account_number));
@@ -76,6 +85,58 @@ public class CardsView {
                 .filter(card -> card.display().equals(cardString))
                 .findFirst()
                 .orElse(null);
+    }
+    private static void showChangePinWindow(Card card, ListView<String> cardsListView) {
+        Dialog<Card> dialog = new Dialog<>();
+        dialog.setTitle("Zmiana pinu");
+        dialog.setHeaderText("Zmień PIN dla karty" + card.toString());
+
+        ButtonType confirmButtonType = new ButtonType("Zatwierdź", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(confirmButtonType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField newPin = new TextField();
+        newPin.setPromptText("Podaj nowy PIN");
+        TextField newPinCheck = new TextField();
+        newPinCheck.setPromptText("Potwierdź nowy PIN");
+
+        grid.add(new Label("Podaj nowy PIN:"), 0, 0);
+        grid.add(newPin, 1, 0);
+        grid.add(new Label("Podaj nowy PIN jeszcze raz"), 0, 1);
+        grid.add(newPinCheck, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == confirmButtonType){
+                try{
+                    String pin1 = newPin.getText();
+                    String pin2 = newPinCheck.getText();
+
+                    if(Objects.equals(pin1, pin2)){
+                        CardService.updateCardPin(card.getCardNumber() , pin1);
+                        card.setPin(pin1);
+                        updateCardsList(cardsListView);
+                    } else {
+                        showAlert("Błąd", "Podane PINY nie są takie same");
+                    }
+                } catch (NumberFormatException ex) {
+                    showAlert("Błąd", "Wprowadź poprawne wartości liczbowe.");
+                    return null;
+                } catch (Exception ex) {
+                    showAlert("Błąd", "Wystąpił błąd podczas aktualizacji");
+                    return null;
+                }
+
+            }
+
+            return null;
+        });
+        dialog.showAndWait();
     }
 
     private static void showChangeLimitsWindow(Card card, ListView<String> cardsListView) {
