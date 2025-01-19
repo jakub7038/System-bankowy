@@ -35,64 +35,72 @@ END transaction_pkg;
 CREATE OR REPLACE PACKAGE BODY transaction_pkg IS
 
     PROCEDURE CREATE_TRANSACTION (
-    p_account_number IN CHAR,
-    p_account_number_receiver IN CHAR,
-    p_amount IN NUMBER,
-    p_type_of_transaction IN VARCHAR2,
-    p_description_of_transaction IN VARCHAR2,
-    p_result OUT VARCHAR2
-) IS
-    v_sender_balance NUMBER;
-    v_receiver_balance NUMBER;
-BEGIN
-    SELECT balance
-    INTO v_sender_balance
-    FROM ACCOUNT
-    WHERE account_number = p_account_number;
+        p_account_number IN CHAR,
+        p_account_number_receiver IN CHAR,
+        p_amount IN NUMBER,
+        p_type_of_transaction IN VARCHAR2,
+        p_description_of_transaction IN VARCHAR2,
+        p_result OUT VARCHAR2
+    ) IS
+        v_sender_balance NUMBER;
+        v_receiver_exists NUMBER;
+    BEGIN
+        SELECT balance
+        INTO v_sender_balance
+        FROM ACCOUNT
+        WHERE account_number = p_account_number;
 
-    IF v_sender_balance < p_amount THEN
-        p_result := 'Insufficient funds.';
-        RETURN;
-    END IF;
+        IF v_sender_balance < p_amount THEN
+            p_result := 'Insufficient funds.';
+            RETURN;
+        END IF;
 
-    SELECT balance
-    INTO v_receiver_balance
-    FROM ACCOUNT
-    WHERE account_number = p_account_number_receiver;
+        BEGIN
+            SELECT COUNT(*)
+            INTO v_receiver_exists
+            FROM ACCOUNT
+            WHERE account_number = p_account_number_receiver;
 
-    UPDATE ACCOUNT
-    SET balance = balance - p_amount
-    WHERE account_number = p_account_number;
+            IF v_receiver_exists > 0 THEN
+                UPDATE ACCOUNT
+                SET balance = balance + p_amount
+                WHERE account_number = p_account_number_receiver;
+            END IF;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN
+                NULL;
+        END;
 
-    UPDATE ACCOUNT
-    SET balance = balance + p_amount
-    WHERE account_number = p_account_number_receiver;
+        UPDATE ACCOUNT
+        SET balance = balance - p_amount
+        WHERE account_number = p_account_number;
 
-    INSERT INTO "TRANSACTION" (
-        account_number,
-        account_number_receiver,
-        date_of_transaction,
-        amount,
-        type_of_transaction,
-        description_of_transaction
-    ) VALUES (
-        p_account_number,
-        p_account_number_receiver,
-        CURRENT_TIMESTAMP,
-        p_amount,
-        p_type_of_transaction,
-        p_description_of_transaction
-    );
+        INSERT INTO "TRANSACTION" (
+            account_number,
+            account_number_receiver,
+            date_of_transaction,
+            amount,
+            type_of_transaction,
+            description_of_transaction
+        ) VALUES (
+            p_account_number,
+            p_account_number_receiver,
+            CURRENT_TIMESTAMP,
+            p_amount,
+            p_type_of_transaction,
+            p_description_of_transaction
+        );
 
-    COMMIT;
-    p_result := 'Transaction completed successfully.';
-EXCEPTION
-    WHEN NO_DATA_FOUND THEN
-        p_result := 'Error: One or both account numbers do not exist.';
-    WHEN OTHERS THEN
-        ROLLBACK;
-        p_result := 'Error creating transaction: ' || SQLERRM;
-END CREATE_TRANSACTION;
+        COMMIT;
+        p_result := 'Transaction completed successfully.';
+    
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            p_result := 'Error: One or both account numbers do not exist.';
+        WHEN OTHERS THEN
+            ROLLBACK;
+            p_result := 'Error creating transaction: ' || SQLERRM;
+    END CREATE_TRANSACTION;
 
     FUNCTION READ_ALL_TRANSACTIONS_FUNC
     RETURN transaction_tbl PIPELINED

@@ -50,6 +50,11 @@ CREATE OR REPLACE PACKAGE client_pkg IS
         p_value IN VARCHAR2,
         p_result OUT VARCHAR2
     );
+    
+    PROCEDURE DELETE_CLIENT (
+        p_pesel IN CHAR,
+        p_result OUT VARCHAR2
+    );
 
 END client_pkg;
 /
@@ -242,6 +247,43 @@ CREATE OR REPLACE PACKAGE BODY client_pkg IS
             ROLLBACK;
             p_result := 'Error updating phone number: ' || SQLERRM;
     END UPDATE_PHONE_NUMBER;
+    
+    PROCEDURE DELETE_CLIENT (
+    p_pesel IN CHAR,
+    p_result OUT VARCHAR2
+) IS
+    v_client_count NUMBER;
+    v_account_result VARCHAR2(255);
+BEGIN
+    FOR account_rec IN (
+        SELECT account_number
+        FROM CLIENT_ACCOUNT
+        WHERE pesel = p_pesel
+    ) LOOP
+        DELETE FROM CLIENT_ACCOUNT
+        WHERE pesel = p_pesel
+        AND account_number = account_rec.account_number;
+
+        SELECT COUNT(*)
+        INTO v_client_count
+        FROM CLIENT_ACCOUNT
+        WHERE account_number = account_rec.account_number;
+
+        IF v_client_count = 0 THEN
+            account_pkg.DELETE_ACCOUNT(account_rec.account_number, v_account_result);
+            DBMS_OUTPUT.PUT_LINE(v_account_result);
+        END IF;
+    END LOOP;
+
+    DELETE FROM CLIENT WHERE pesel = p_pesel;
+
+    COMMIT;
+    p_result := 'Client and associated accounts handled successfully.';
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_result := 'Error: ' || SQLERRM;
+END DELETE_CLIENT;
 
 END client_pkg;
 /

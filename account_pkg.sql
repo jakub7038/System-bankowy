@@ -33,6 +33,10 @@ CREATE OR REPLACE PACKAGE account_pkg IS
         p_account_number   IN CHAR
     ) RETURN account_tbl PIPELINED;
 
+    FUNCTION read_accounts_by_client(
+        p_pesel IN CHAR
+    ) RETURN account_tbl PIPELINED;
+
     PROCEDURE update_password (
         p_account_number   IN CHAR,
         p_old_password     IN VARCHAR2,
@@ -46,16 +50,33 @@ CREATE OR REPLACE PACKAGE account_pkg IS
         p_result           OUT VARCHAR2
     );
 
+    PROCEDURE DELETE_ACCOUNT (
+        p_account_number IN CHAR,
+        p_result OUT VARCHAR2
+    );
+
     PROCEDURE login (
         p_username         IN VARCHAR2,
         p_password         IN VARCHAR2,
         p_login_status     OUT VARCHAR2
     );
 
+    PROCEDURE admin_update_password (
+        p_account_number   IN CHAR,
+        p_new_password     IN VARCHAR2,
+        p_result           OUT VARCHAR2
+    );
+
+    PROCEDURE admin_update_login (
+        p_account_number IN CHAR,
+        p_new_login      IN VARCHAR2,
+        p_result         OUT VARCHAR2
+    );
+
 END account_pkg;
 /
 
-CREATE OR REPLACE PACKAGE BODY account_pkg IS
+create or replace PACKAGE BODY account_pkg IS
 
     PROCEDURE create_account (
         p_type_of_account   IN VARCHAR2,
@@ -70,7 +91,7 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
         hashed_password    VARCHAR2(64);
         salt               RAW(32);
     BEGIN
-        v_account_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 999999999999999999)), 18, '0') ||
+        v_account_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 999999999999999999)), 14, '0') ||
                             TO_CHAR(SYSDATE, 'YYYYMMDDHH24MI');
 
         salt := DBMS_CRYPTO.RANDOMBYTES(16);
@@ -175,6 +196,34 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
         RETURN;
     END read_account_by_number_func;
 
+    FUNCTION read_accounts_by_client(
+        p_pesel IN CHAR
+    ) RETURN account_tbl PIPELINED
+    IS
+    BEGIN
+        FOR rec IN (
+            SELECT a.account_number, 
+                   a.type_of_account, 
+                   a.balance, 
+                   a.date_of_creation, 
+                   a.status, 
+                   a.login
+            FROM ACCOUNT a
+            JOIN CLIENT_ACCOUNT ca ON a.account_number = ca.account_number
+            WHERE ca.pesel = p_pesel
+        ) LOOP
+            PIPE ROW(account_obj(
+                rec.account_number, 
+                rec.type_of_account, 
+                rec.balance, 
+                rec.date_of_creation, 
+                rec.status, 
+                rec.login
+            ));
+        END LOOP;
+        RETURN;
+    END read_accounts_by_client;
+
     PROCEDURE update_password (
         p_account_number   IN CHAR,
         p_old_password     IN VARCHAR2,
@@ -222,6 +271,42 @@ CREATE OR REPLACE PACKAGE BODY account_pkg IS
             p_result := 'Error updating password: ' || SQLERRM;
     END update_password;
 
+PROCEDURE admin_update_password (
+    p_account_number   IN CHAR,
+    p_new_password     IN VARCHAR2,
+    p_result           OUT VARCHAR2
+) IS
+    hashed_new_password VARCHAR2(64);
+    stored_salt         RAW(32);
+BEGIN
+    SELECT salt
+    INTO stored_salt
+    FROM ACCOUNT
+    WHERE account_number = p_account_number;
+
+    hashed_new_password := RAWTOHEX(
+        DBMS_CRYPTO.HASH(
+            UTL_RAW.CAST_TO_RAW(p_new_password) || stored_salt,
+            DBMS_CRYPTO.HASH_SH256
+        )
+    );
+
+    UPDATE ACCOUNT
+    SET password = hashed_new_password
+    WHERE account_number = p_account_number;
+
+    IF SQL%ROWCOUNT > 0 THEN
+        COMMIT;
+        p_result := 'Password updated successfully by admin.';
+    ELSE
+        p_result := 'Error: Account not found.';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_result := 'Error updating password: ' || SQLERRM;
+END admin_update_password;
+
 PROCEDURE UPDATE_LOGIN (
         p_account_number IN CHAR,
         p_new_login IN VARCHAR2,
@@ -239,7 +324,7 @@ PROCEDURE UPDATE_LOGIN (
             UPDATE ACCOUNT
             SET login = p_new_login
             WHERE account_number = p_account_number;
-            
+
             IF SQL%ROWCOUNT > 0 THEN
                 COMMIT;
                 p_result := 'Login updated successfully.';
@@ -251,6 +336,47 @@ PROCEDURE UPDATE_LOGIN (
         WHEN OTHERS THEN
             p_result := 'Error updating login: ' || SQLERRM;
     END UPDATE_LOGIN;
+
+PROCEDURE admin_update_login (
+    p_account_number IN CHAR,
+    p_new_login      IN VARCHAR2,
+    p_result         OUT VARCHAR2
+) IS
+BEGIN
+    UPDATE ACCOUNT
+    SET login = p_new_login
+    WHERE account_number = p_account_number;
+
+    IF SQL%ROWCOUNT > 0 THEN
+        COMMIT;
+        p_result := 'Login updated successfully by admin.';
+    ELSE
+        p_result := 'Error: Account not found.';
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        p_result := 'Error updating login: ' || SQLERRM;
+END admin_update_login;
+
+    PROCEDURE DELETE_ACCOUNT (
+    p_account_number IN CHAR,
+    p_result OUT VARCHAR2
+) IS
+BEGIN
+    DELETE FROM ACCOUNT WHERE account_number = p_account_number;
+
+    IF SQL%ROWCOUNT > 0 THEN
+        COMMIT;
+        p_result := 'Account and associated cards deleted successfully.';
+    ELSE
+        p_result := 'Account not found.';
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_result := 'Error: ' || SQLERRM;
+END DELETE_ACCOUNT;
 
     PROCEDURE LOGIN (
     p_username IN VARCHAR2,
@@ -289,4 +415,3 @@ END LOGIN;
 
 END account_pkg;
 /
-

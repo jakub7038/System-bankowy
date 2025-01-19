@@ -48,6 +48,11 @@ CREATE OR REPLACE PACKAGE card_pkg IS
         p_result OUT VARCHAR2
     );
 
+    PROCEDURE DELETE_CARD (
+    p_card_number IN CHAR,
+    p_result OUT VARCHAR2
+    );
+
 END card_pkg;
 /
 
@@ -192,6 +197,27 @@ CREATE OR REPLACE PACKAGE BODY card_pkg IS
         WHEN OTHERS THEN
             p_result := 'Error updating card PIN: ' || SQLERRM;
     END UPDATE_CARD_PIN;
+
+    PROCEDURE DELETE_CARD (
+    p_card_number IN CHAR,
+    p_result OUT VARCHAR2
+) IS
+BEGIN
+    DELETE FROM CARD
+    WHERE card_number = p_card_number;
+
+    IF SQL%ROWCOUNT > 0 THEN
+        COMMIT;
+        p_result := 'Card deleted successfully.';
+    ELSE
+        p_result := 'Card not found.';
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_result := 'Error deleting card: ' || SQLERRM;
+END DELETE_CARD;
 
 END card_pkg;
 /
