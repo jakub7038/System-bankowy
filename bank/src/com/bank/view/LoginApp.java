@@ -1,39 +1,33 @@
 package com.bank.view;
 
+import com.bank.view.admin.AdminApp;
+import com.bank.view.user.UserApp;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.GridPane;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-import com.bank.model.AccountService;
+import com.bank.repository.AccountRepository;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.*;
-import javafx.stage.Stage;
-import com.bank.model.AccountService;
-import com.bank.model.DatabaseConnectionTester;
+import com.bank.repository.DatabaseConnectionTester;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static com.bank.view.shared.ErrorAlert.showAlert;
 
 public class LoginApp {
 
     public void showLoginWindow(Stage primaryStage) {
-        // Główny kontener
         VBox mainContainer = new VBox(15);
         mainContainer.setPadding(new Insets(20));
         mainContainer.setStyle("-fx-background-color: #f5f5f5;");
@@ -51,11 +45,9 @@ public class LoginApp {
         );
         loginPanel.setMaxWidth(300);
 
-        // Tytuł
         Text titleText = new Text("Logowanie do systemu");
         titleText.setFont(Font.font("System", FontWeight.BOLD, 18));
 
-        // Pola logowania
         Label loginLabel = new Label("Login:");
         TextField loginField = new TextField();
         loginField.setPromptText("Wprowadź login");
@@ -66,7 +58,6 @@ public class LoginApp {
         passwordField.setPromptText("Wprowadź hasło");
         passwordField.setPrefHeight(30);
 
-        // Przycisk logowania
         Button loginButton = new Button("Zaloguj się");
         loginButton.setPrefWidth(Double.MAX_VALUE);
         loginButton.setPrefHeight(35);
@@ -77,14 +68,12 @@ public class LoginApp {
                         "-fx-cursor: hand;"
         );
 
-        // Status połączenia z bazą
         HBox dbStatusBox = new HBox(10);
         dbStatusBox.setAlignment(Pos.CENTER);
         Circle statusCircle = new Circle(5);
         Label dbStatusLabel = new Label();
         dbStatusBox.getChildren().addAll(statusCircle, dbStatusLabel);
 
-        // Sprawdzenie połączenia
         if (DatabaseConnectionTester.testConnection()) {
             statusCircle.setFill(Color.GREEN);
             dbStatusLabel.setText("Połączono z bazą danych");
@@ -94,7 +83,6 @@ public class LoginApp {
             loginButton.setDisable(true);
         }
 
-        // Obsługa logowania
         loginButton.setOnAction(e -> {
             String login = loginField.getText();
             String password = passwordField.getText();
@@ -104,25 +92,31 @@ public class LoginApp {
                 return;
             }
 
-            String output = AccountService.login(login, password);
-            System.out.println(output);
+            if (login.equals("admin") && password.equals("admin")) {
+                primaryStage.close();
+                AdminApp adminApp = new AdminApp();
+                adminApp.showMainWindow();
+                return;
+            }
 
+
+            String output = AccountRepository.login(login, password);
+            System.out.println(output);
             if (output.contains("Login successful")) {
                 Pattern pattern = Pattern.compile("(\\d+)$");
                 Matcher matcher = pattern.matcher(output);
                 if (matcher.find()) {
                     String accountNumber = matcher.group(1);
-                    MainApp.setCurrent_login_account_number(Integer.parseInt(accountNumber));
+                    UserApp.setCurrent_login_account_number(accountNumber);
                 }
                 primaryStage.close();
-                MainApp mainApp = new MainApp();
-                mainApp.showMainWindow();
+                UserApp userApp = new UserApp();
+                userApp.showMainWindow();
             } else {
                 showAlert("Błąd logowania", "Błędne hasło lub login");
             }
         });
 
-        // Dodanie elementów do panelu logowania
         loginPanel.getChildren().addAll(
                 titleText,
                 new Separator(),
@@ -143,11 +137,4 @@ public class LoginApp {
         primaryStage.show();
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
 }

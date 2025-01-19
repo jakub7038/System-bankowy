@@ -1,10 +1,10 @@
-package com.bank.model;
+package com.bank.repository;
 
 import java.sql.*;
 
-public class ClientAccountService {
+public class ClientAccountRepository {
 
-    public String addClientToAccount(String pesel, String accountNumber) {
+    public static String addClientToAccount(String pesel, String accountNumber) {
         String result;
         String sql = "{call client_account_pkg.ADD_CLIENT_TO_ACCOUNT(?, ?, ?)}";
 
@@ -24,7 +24,7 @@ public class ClientAccountService {
         return result;
     }
 
-    public String deleteClientFromAccount(String pesel, String accountNumber) {
+    public static String deleteClientFromAccount(String pesel, String accountNumber) {
         String result;
         String sql = "{call client_account_pkg.DELETE_CLIENT_FROM_ACCOUNT(?, ?, ?)}";
 

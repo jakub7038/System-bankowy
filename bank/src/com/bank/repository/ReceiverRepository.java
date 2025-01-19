@@ -1,10 +1,12 @@
-package com.bank.model;
+package com.bank.repository;
+
+import com.bank.model.Receiver;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReceiverService {
+public class ReceiverRepository {
 
     static public String createReceiver(Receiver receiver) {
         String result;
@@ -13,8 +15,11 @@ public class ReceiverService {
         try (Connection connection = DatabaseConfig.getConnection();
              CallableStatement stmt = connection.prepareCall(sql)) {
 
-            stmt.setString(1, receiver.getAccountNumberReceiver());
-            stmt.setString(2, receiver.getAccountNumberTied());
+            String paddedAccountNumberReceiver = String.format("%-26s", receiver.getAccountNumberReceiver());
+            String paddedAccountNumberTied = String.format("%-26s", receiver.getAccountNumberTied());
+
+            stmt.setString(1, paddedAccountNumberReceiver);
+            stmt.setString(2, paddedAccountNumberTied);
             stmt.setString(3, receiver.getDescription());
             stmt.setString(4, receiver.getFirstName());
             stmt.setString(5, receiver.getLastName());
@@ -96,11 +101,12 @@ public class ReceiverService {
 
     static private Receiver mapResultSetToReceiver(ResultSet rs) throws SQLException {
         return new Receiver(
-                rs.getString("account_number_RECEIVER"),
-                rs.getString("account_number_TIED"),
+                rs.getString("account_number_receiver"),
+                rs.getString("account_number_tied"),
                 rs.getString("description"),
                 rs.getString("first_name"),
                 rs.getString("last_name")
         );
     }
+
 }

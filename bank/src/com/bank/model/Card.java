@@ -9,7 +9,7 @@ public class Card {
     private double dailyLimit;
     private double singlePaymentLimit;
     private String cvv;
-    private boolean isActive;
+    private boolean active;
     private String accountNumber;
     private String pin;
 
@@ -18,7 +18,7 @@ public class Card {
                 double dailyLimit,
                 double singlePaymentLimit,
                 String cvv,
-                boolean isActive,
+                boolean active,
                 String accountNumber,
                 String pin) {
         this.cardNumber = cardNumber;
@@ -26,7 +26,7 @@ public class Card {
         this.dailyLimit = dailyLimit;
         this.singlePaymentLimit = singlePaymentLimit;
         this.cvv = cvv;
-        this.isActive = isActive;
+        this.active = active;
         this.accountNumber = accountNumber;
         this.pin = pin;
     }
@@ -72,11 +72,11 @@ public class Card {
     }
 
     public boolean isActive() {
-        return isActive;
+        return active;
     }
 
     public void setActive(boolean active) {
-        isActive = active;
+        this.active = active;
     }
 
     public String getAccountNumber() {
@@ -103,7 +103,7 @@ public class Card {
                 ", Limit pojedyńczej płatności=" +  String.valueOf(singlePaymentLimit).trim() +
                 ", CVV=" +  String.valueOf(cvv).trim() +
                 ", PIN= " + String.valueOf(pin).trim() +
-                ", Czy aktywna=" + (isActive ? "Tak" : "Nie") +
+                ", Czy aktywna=" + (active ? "Tak" : "Nie") +
                 ", Numer konta przypisanego do karty=" +  String.valueOf(accountNumber).trim();
     }
     public String display(){
@@ -112,7 +112,7 @@ public class Card {
                 ", Dzienny limit=" +  String.valueOf(dailyLimit).trim() +
                 ", Limit pojedyńczej płatności=" +  String.valueOf(singlePaymentLimit).trim() +
                 ", CVV=" +  String.valueOf(cvv).trim() +
-                ", " + (isActive ? "Aktywna" : "Nie aktywna");
+                ", " + (active ? "Aktywna" : "Nie aktywna");
     }
 }
 //String.valueOf(isActive).trim()

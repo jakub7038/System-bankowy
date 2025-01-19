@@ -62,17 +62,17 @@ public class Receiver {
 
     @Override
     public String toString() {
-        return "com.bank.model.Receiver [com.bank.model.Receiver com.bank.model.Account=" + accountNumberReceiver +
-                ", Tied com.bank.model.Account=" + accountNumberTied +
-                ", Description=" + description +
-                ", Name=" + firstName +
-                ", lastname= " + lastName + "]";
+        return "Konto-" + accountNumberReceiver.trim() +
+                ", Konto powiązane-" + accountNumberTied.trim() +
+                ", Opis-" + description.trim() +
+                ", imię-" + firstName.trim() +
+                ", nazwisko-" + lastName.trim();
     }
 
-    public String display() {
-        return "Imię: " + firstName +
-                ", Nazwisko: " +  lastName +
-                "Opis: " + description +
-                "Numer konta: " + accountNumberReceiver;
+    public String displayReceiver() {
+        return "Konto: " + accountNumberReceiver.trim() +
+                ", Opis: " + description.trim() +
+                ", imię: " + firstName.trim() +
+                ", nazwisko: " + lastName.trim();
     }
 }

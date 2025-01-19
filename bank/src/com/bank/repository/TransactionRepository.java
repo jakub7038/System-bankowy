@@ -1,40 +1,45 @@
-package com.bank.model;
+package com.bank.repository;
+
+import com.bank.model.Transaction;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TransactionService {
+public class TransactionRepository {
 
-    static public String createTransaction(int id, String accountNumber, String accountNumberReceiver,
-                                    Timestamp dateOfTransaction, double amount,
-                                    String typeOfTransaction, String description) {
+    static public String createTransaction(String accountNumber, String accountNumberReceiver,
+                                           double amount, String typeOfTransaction, String description) {
         String resultMessage = null;
-        String sql = "{call transaction_pkg.CREATE_TRANSACTION(?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call transaction_pkg.CREATE_TRANSACTION(?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = DatabaseConfig.getConnection();
              CallableStatement stmt = connection.prepareCall(sql)) {
+            String paddedAccountNumber = String.format("%-26s", accountNumber);
+            String paddedReceiverAccountNumber = String.format("%-26s", accountNumberReceiver);
 
-            stmt.setInt(1, id);
-            stmt.setString(2, accountNumber);
-            stmt.setString(3, accountNumberReceiver);
-            stmt.setTimestamp(4, dateOfTransaction);
-            stmt.setDouble(5, amount);
-            stmt.setString(6, typeOfTransaction);
-            stmt.setString(7, description);
-            stmt.registerOutParameter(8, Types.VARCHAR);
+            stmt.setString(1, paddedAccountNumber);
+            stmt.setString(2, paddedReceiverAccountNumber);
+            stmt.setInt(3, (int)(100*amount));
+            stmt.setString(4, typeOfTransaction);
+            stmt.setString(5, description);
+            stmt.registerOutParameter(6, Types.VARCHAR);
 
             stmt.execute();
-            resultMessage = stmt.getString(8);
+
+            resultMessage = stmt.getString(6);
+            System.out.println("Result from DB: " + resultMessage);
+
         } catch (SQLException e) {
             e.printStackTrace();
+            resultMessage = "Error: " + e.getMessage();
         }
 
         return resultMessage;
     }
 
-   static  public List<Transaction> readAllTransactions() {
-        String sql = "SELECT * FROM TABLE(transaction_pkg.read_all_transactions_func())";
+    static public List<Transaction> readAllTransactions() {
+        String sql = "SELECT * FROM TABLE(transaction_pkg.READ_ALL_TRANSACTIONS_FUNC())";
         List<Transaction> transactions = new ArrayList<>();
 
         try (Connection connection = DatabaseConfig.getConnection();
@@ -52,7 +57,7 @@ public class TransactionService {
     }
 
     static public List<Transaction> readTransactionsByAccount(String accountNumber) {
-        String sql = "SELECT * FROM TABLE(transaction_pkg.read_transactions_by_account_func(?))";
+        String sql = "SELECT * FROM TABLE(transaction_pkg.READ_TRANSACTIONS_BY_ACCOUNT_FUNC(?))";
         List<Transaction> transactions = new ArrayList<>();
 
         try (Connection connection = DatabaseConfig.getConnection();

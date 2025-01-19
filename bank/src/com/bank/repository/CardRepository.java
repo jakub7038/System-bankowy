@@ -1,10 +1,12 @@
-package com.bank.model;
+package com.bank.repository;
+
+import com.bank.model.Card;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CardService {
+public class CardRepository {
 
     static public List<Card> readAllCards() {
         String sql = "SELECT * FROM TABLE(card_pkg.READ_ALL_CARDS_FUNC())";
@@ -22,6 +24,28 @@ public class CardService {
         }
 
         return cards;
+    }
+
+    public static String deleteCard(String cardNumber) {
+        String result = "Error deleting card.";
+        String sql = "{CALL card_pkg.DELETE_CARD(?, ?)}";
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             CallableStatement stmt = connection.prepareCall(sql)) {
+
+            stmt.setString(1, cardNumber);
+
+            stmt.registerOutParameter(2, Types.VARCHAR);
+
+            stmt.execute();
+
+            result = stmt.getString(2);
+
+        } catch (SQLException e) {
+            System.err.println("Error deleting card: " + e.getMessage());
+        }
+
+        return result;
     }
 
     static public Card readCardByNumber(String cardNumber) {
@@ -52,7 +76,6 @@ public class CardService {
         try (Connection connection = DatabaseConfig.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
 
-
             stmt.setString(1, accountNumber);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -67,27 +90,23 @@ public class CardService {
         return cards;
     }
 
-
-    static public String createCard(String cardNumber, Date expirationDate, double dailyLimit, double singlePaymentLimit,
-                             String cvv, boolean isActive, String accountNumber, String pin) {
+    static public String createCard(double dailyLimit, double singlePaymentLimit, String cvv, boolean isActive, String accountNumber, String pin) {
         String result;
-        String sql = "{call card_pkg.CREATE_CARD(?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        String sql = "{call card_pkg.CREATE_CARD(?, ?, ?, ?, ?, ?, ?)}";
 
         try (Connection connection = DatabaseConfig.getConnection();
              CallableStatement stmt = connection.prepareCall(sql)) {
 
-            stmt.setString(1, cardNumber);
-            stmt.setDate(2, expirationDate);
-            stmt.setDouble(3, dailyLimit);
-            stmt.setDouble(4, singlePaymentLimit);
-            stmt.setString(5, cvv);
-            stmt.setInt(6, isActive ? 1 : 0);
-            stmt.setString(7, accountNumber);
-            stmt.setString(8, pin);
-            stmt.registerOutParameter(9, Types.VARCHAR);
+            stmt.setDouble(1, dailyLimit);
+            stmt.setDouble(2, singlePaymentLimit);
+            stmt.setString(3, cvv);
+            stmt.setInt(4, isActive ? 1 : 0);
+            stmt.setString(5, accountNumber);
+            stmt.setString(6, pin);
+            stmt.registerOutParameter(7, Types.VARCHAR);
             stmt.execute();
 
-            result = stmt.getString(9);
+            result = stmt.getString(7);
         } catch (SQLException e) {
             result = "Error creating card: " + e.getMessage();
         }
@@ -129,7 +148,6 @@ public class CardService {
             stmt.execute();
 
             result = stmt.getString(3);
-            System.out.println(result);
         } catch (SQLException e) {
             result = "Error updating card status: " + e.getMessage();
         }
@@ -169,4 +187,5 @@ public class CardService {
                 rs.getString("PIN")
         );
     }
+
 }

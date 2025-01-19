@@ -1,38 +1,33 @@
-package com.bank.view;
+package com.bank.view.user;
 
 import com.bank.model.Client;
-import com.bank.model.ClientService;
+import com.bank.repository.ClientRepository;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
 
-import static com.bank.view.MainApp.current_login_account_number;
+import static com.bank.view.user.UserApp.current_login_account_number;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
-public class CustomersView {
+public class CustomerTab {
     static public Tab customerInfoTab() {
-        List<Client> clients = ClientService.readClientsByAccount(String.valueOf(current_login_account_number));
+        List<Client> clients = ClientRepository.readClientsByAccount(String.valueOf(current_login_account_number));
 
-        // Główny kontener ze scrollowaniem
         ScrollPane scrollPane = new ScrollPane();
         VBox customerInfoTabContent = new VBox(20);
         customerInfoTabContent.setPadding(new Insets(20));
 
-        // Tytuł
         Label titleLabel = new Label("Informacje o klientach");
         titleLabel.setFont(new Font(16));
         customerInfoTabContent.getChildren().add(titleLabel);
 
-        // Tworzenie panelu dla każdego klienta
         for (Client client : clients) {
             customerInfoTabContent.getChildren().add(createClientPanel(client));
         }
@@ -41,9 +36,7 @@ public class CustomersView {
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent;");
 
-        // Tworzenie i zwracanie taba
         Tab customerInfoTab = new Tab("Informacje o klientach", scrollPane);
-        customerInfoTab.setClosable(false);
         return customerInfoTab;
     }
 
@@ -61,7 +54,6 @@ public class CustomersView {
         detailsGrid.setHgap(10);
         detailsGrid.setVgap(8);
 
-        // Etykiety i wartości
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
         addField(detailsGrid, 0, "PESEL:", client.getPesel());

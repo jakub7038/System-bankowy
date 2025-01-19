@@ -1,13 +1,24 @@
-package com.bank.model;
+package com.bank.repository;
 
-import java.sql.*;
+
+import com.bank.model.Client;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientService {
+
+
+
+import java.sql.*;
+
+public class ClientRepository {
 
     static public String createClient(String pesel, String firstName, String lastName,
-                               String middleName, String phoneNumber, Date dateOfBirth) {
+                                      String middleName, String phoneNumber, Date dateOfBirth) {
         String result = null;
         String sql = "{call client_pkg.CREATE_CLIENT(?, ?, ?, ?, ?, ?, ?)}";
         try (Connection connection = DatabaseConfig.getConnection();
@@ -30,6 +41,47 @@ public class ClientService {
         return result;
     }
 
+    public static String deleteClient(String pesel) {
+        String result = "Error deleting client.";
+        String sql = "{CALL client_pkg.DELETE_CLIENT(?, ?)}"; // Stored procedure call
+
+        try (Connection connection = DatabaseConfig.getConnection();
+             CallableStatement stmt = connection.prepareCall(sql)) {
+
+            stmt.setString(1, pesel);
+            stmt.registerOutParameter(2, Types.VARCHAR);
+            stmt.execute();
+            result = stmt.getString(2);
+
+        } catch (SQLException e) {
+            System.err.println("Error deleting client: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+
+    public static List<Client> readClientsByAccount(String accountNumber) {
+    List<Client> clients = new ArrayList<>();
+    String sql = "SELECT * FROM TABLE(client_pkg.READ_CLIENTS_BY_ACCOUNT(?))";
+
+    try (Connection connection = DatabaseConfig.getConnection();
+         PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+        stmt.setString(1, accountNumber);
+        try (ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                clients.add(mapResultSetToClient(rs));
+            }
+        }
+
+    } catch (SQLException e) {
+        System.err.println("Error reading clients by account number: " + e.getMessage());
+    }
+
+    return clients;
+}
+
     static public List<Client> readAllClients() {
         List<Client> clients = new ArrayList<>();
         String sql = "SELECT * FROM TABLE(client_pkg.READ_ALL_CLIENTS())";
@@ -44,27 +96,6 @@ public class ClientService {
 
         } catch (SQLException e) {
             System.err.println("Error reading all clients: " + e.getMessage());
-        }
-
-        return clients;
-    }
-
-    public static List<Client> readClientsByAccount(String accountNumber) {
-        List<Client> clients = new ArrayList<>();
-        String sql = "SELECT * FROM TABLE(client_pkg.READ_CLIENTS_BY_ACCOUNT(?))";
-
-        try (Connection connection = DatabaseConfig.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
-
-            stmt.setString(1, accountNumber);
-            try (ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    clients.add(mapResultSetToClient(rs));
-                }
-            }
-
-        } catch (SQLException e) {
-            System.err.println("Error reading clients by account number: " + e.getMessage());
         }
 
         return clients;
@@ -138,4 +169,5 @@ public class ClientService {
                 rs.getDate("date_of_birth")
         );
     }
+
 }
