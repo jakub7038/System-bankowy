@@ -62,28 +62,4 @@ CREATE TABLE RECEIVER (
 
 
 
---wymagane do numerowania tranzakcji
-CREATE SEQUENCE transaction_id_seq
-START WITH 1
-INCREMENT BY 1
-NOCACHE
-NOCYCLE;
-
-CREATE OR REPLACE TRIGGER trg_transaction_id
-BEFORE INSERT ON "TRANSACTION"
-FOR EACH ROW
-BEGIN
-    :NEW.ID := transaction_id_seq.NEXTVAL;
-END;
-/
-
-CREATE OR REPLACE TRIGGER trg_transaction_id
-BEFORE INSERT ON "TRANSACTION"
-FOR EACH ROW
-BEGIN
-    :NEW.ID := transaction_id_seq.NEXTVAL;
-END;
-/
-
-
 
