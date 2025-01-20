@@ -18,13 +18,12 @@ CREATE TABLE ACCOUNT (
     password CHAR(64) NOT NULL
 );
 
-
 CREATE TABLE CLIENT_ACCOUNT (
     pesel CHAR(11),
     account_number CHAR(26),
     PRIMARY KEY (pesel, account_number),
-    FOREIGN KEY (pesel) REFERENCES CLIENT (PESEL) ON DELETE SET NULL,
-    FOREIGN KEY (account_number) REFERENCES ACCOUNT (account_number) ON DELETE SET NULL
+    FOREIGN KEY (pesel) REFERENCES CLIENT (PESEL) ON DELETE CASCADE,
+    FOREIGN KEY (account_number) REFERENCES ACCOUNT (account_number) ON DELETE CASCADE
 );
 
 CREATE TABLE CARD (
@@ -36,7 +35,7 @@ CREATE TABLE CARD (
     is_active NUMBER(1) DEFAULT 0,
     account_number CHAR(26) NOT NULL,
     PIN CHAR(4) NOT NULL,
-    FOREIGN KEY (account_number) REFERENCES ACCOUNT(account_number)
+    FOREIGN KEY (account_number) REFERENCES ACCOUNT(account_number) ON DELETE CASCADE
 );
 
 CREATE TABLE TRANSACTION (
@@ -57,9 +56,5 @@ CREATE TABLE RECEIVER (
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     CONSTRAINT pk_receiver PRIMARY KEY (account_number_RECEIVER, account_number_TIED),
-    CONSTRAINT fk_receiver_account FOREIGN KEY (account_number_TIED) REFERENCES ACCOUNT(account_number)
+    CONSTRAINT fk_receiver_account FOREIGN KEY (account_number_TIED) REFERENCES ACCOUNT(account_number) ON DELETE CASCADE
 );
-
-
-
-

@@ -248,7 +248,7 @@ CREATE OR REPLACE PACKAGE BODY client_pkg IS
             p_result := 'Error updating phone number: ' || SQLERRM;
     END UPDATE_PHONE_NUMBER;
     
-    PROCEDURE DELETE_CLIENT (
+PROCEDURE DELETE_CLIENT (
     p_pesel IN CHAR,
     p_result OUT VARCHAR2
 ) IS
@@ -279,6 +279,7 @@ BEGIN
 
     COMMIT;
     p_result := 'Client and associated accounts handled successfully.';
+
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
