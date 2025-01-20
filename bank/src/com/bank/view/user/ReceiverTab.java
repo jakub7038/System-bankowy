@@ -19,10 +19,6 @@ import java.util.Optional;
 
 import static com.bank.view.user.UserApp.current_login_account_number;
 
-
-
-
-
 public class ReceiverTab {
     private static TableView<Receiver> receiverTable;
     private static final ObservableList<Receiver> receiverList = FXCollections.observableArrayList();

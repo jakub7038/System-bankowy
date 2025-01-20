@@ -54,7 +54,7 @@ public class HomePageTab {
         String valueStyle = "-fx-font-size: 16px; -fx-font-weight: bold;";
 
         addInfoRow(gridPane, "Numer konta:", account.getAccountNumber(), 0, labelStyle, valueStyle);
-        addInfoRow(gridPane, "Dostępne środki:", String.format("$%.2f", account.getBalance()), 1, labelStyle, valueStyle);
+        addInfoRow(gridPane, "Dostępne środki:", account.getBalance() + " PLN", 1, labelStyle, valueStyle);
         addInfoRow(gridPane, "Typ konta:", account.getTypeOfAccount(), 2, labelStyle, valueStyle);
 
         infoPanel.getChildren().addAll(titleLabel, separator, gridPane);

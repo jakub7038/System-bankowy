@@ -20,7 +20,6 @@ import java.util.List;
 
 import static com.bank.view.shared.ErrorAlert.showAlert;
 import static com.bank.view.user.UserApp.current_login_account_number;
-import static java.util.Collections.replaceAll;
 
 public class TransactionTab {
     private static TableView<Transaction> transactionTable;

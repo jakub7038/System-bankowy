@@ -62,11 +62,11 @@ public class Receiver {
 
     @Override
     public String toString() {
-        return "Konto-" + accountNumberReceiver.trim() +
-                ", Konto powiązane-" + accountNumberTied.trim() +
-                ", Opis-" + description.trim() +
-                ", imię-" + firstName.trim() +
-                ", nazwisko-" + lastName.trim();
+        return "Konto:" + accountNumberReceiver.trim() +
+                ", Konto powiązane:" + accountNumberTied.trim() +
+                ", Opis:" + description.trim() +
+                ", imię:" + firstName.trim() +
+                ", nazwisko:" + lastName.trim();
     }
 
     public String displayReceiver() {

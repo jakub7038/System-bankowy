@@ -75,11 +75,11 @@ public class Client {
 
     @Override
     public String toString() {
-        return "com.bank.model.Client [PESEL=" + pesel +
-                ", Name=" + firstName +
-                ", Last name=" + lastName +
-                ", Middle Name=" + middleName +
-                ", Phone=" + phoneNumber +
-                ", Date of Birth=" + dateOfBirth + "]";
+        return "pesel: " + pesel +
+                ", Imię:" + firstName +
+                ", Nazwisko: " + lastName +
+                ", Drugie imie" + middleName +
+                ", nr telefonu: " + phoneNumber +
+                ", data urodzenia: " + dateOfBirth + "]";
     }
 }

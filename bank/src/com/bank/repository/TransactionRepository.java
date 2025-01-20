@@ -83,7 +83,7 @@ public class TransactionRepository {
                 rs.getString("account_number"),
                 rs.getString("account_number_receiver"),
                 rs.getTimestamp("date_of_transaction"),
-                rs.getDouble("amount"),
+                rs.getDouble("amount")/100,
                 rs.getString("type_of_transaction"),
                 rs.getString("description_of_transaction")
         );

@@ -19,12 +19,15 @@ import javafx.scene.text.Text;
 import com.bank.model.Account;
 
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static com.bank.view.shared.ErrorAlert.showAlert;
 
 public class AccountManagementTab {
     private static TableView<Account> accountTable;
-    private static ObservableList<Account> accountList = FXCollections.observableArrayList();
+    private static final ObservableList<Account> accountList = FXCollections.observableArrayList();
 
     public static Tab getTab() {
         Tab tab = new Tab("Zarządzanie kontami");
@@ -40,7 +43,6 @@ public class AccountManagementTab {
         tab.setContent(content);
 
         refreshAccountData();
-
         return tab;
     }
 
@@ -54,6 +56,7 @@ public class AccountManagementTab {
         Button displayAssignedClientsBtn = new Button("Wyświetl przypisanych kientów");
         Button assignClientToAccountBtn = new Button("Przypisz klienta do konta");
         Button deleteClientFromAccountBtn = new Button("Usuń klienta z konta");
+        Button refreshDataBtn = new Button("Odśwież");
 
         String buttonStyle = "-fx-background-color: #2196f3; -fx-text-fill: white; " +
                 "-fx-font-weight: bold; -fx-min-width: 150;";
@@ -64,9 +67,14 @@ public class AccountManagementTab {
         displayAssignedClientsBtn.setStyle(buttonStyle);
         assignClientToAccountBtn.setStyle(buttonStyle);
         deleteClientFromAccountBtn.setStyle(buttonStyle);
-
+        refreshDataBtn.setStyle(buttonStyle);
         buttonBox.getChildren().addAll(createAccountBtn, deleteAccountBtn,
-                changePasswordAccountBtn, changeLoginAccountBtn,displayAssignedClientsBtn,assignClientToAccountBtn,deleteClientFromAccountBtn);
+                changePasswordAccountBtn,
+                changeLoginAccountBtn,
+                displayAssignedClientsBtn,
+                assignClientToAccountBtn,
+                deleteClientFromAccountBtn,
+                refreshDataBtn);
 
         createAccountBtn.setOnAction(e -> showCreateAccountDialog());
 
@@ -108,6 +116,8 @@ public class AccountManagementTab {
                 deleteClientFromAccount(selectedAccount);
             } else showAlert("Błąd", "Wybierz konto");
         });
+        refreshDataBtn.setOnAction( e -> refreshAccountData());
+
         return buttonBox;
     }
 
@@ -175,19 +185,16 @@ public class AccountManagementTab {
         accountTable = new TableView<>();
 
         ContextMenu contextMenu = new ContextMenu();
-        MenuItem copyRowMenuItem = new MenuItem("Kopiuj wiersz");
         MenuItem copyCellMenuItem = new MenuItem("Kopiuj komórkę");
 
-        copyRowMenuItem.setOnAction(e -> copyRowToClipboard());
         copyCellMenuItem.setOnAction(e -> copyCellToClipboard());
 
-        contextMenu.getItems().addAll(copyCellMenuItem, copyRowMenuItem);
+        contextMenu.getItems().addAll(copyCellMenuItem);
         accountTable.setContextMenu(contextMenu);
 
         accountTable.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.C && event.isControlDown()) {
                 if (event.isShiftDown()) {
-                    copyRowToClipboard(); // Ctrl + Shift + C kopiuje cały wiersz
                 } else {
                     copyCellToClipboard(); // Ctrl + C kopiuje komórkę
                 }
@@ -195,7 +202,6 @@ public class AccountManagementTab {
         });
 
         accountTable.getSelectionModel().setCellSelectionEnabled(true);
-        accountTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
         TableColumn<Account, String> accountNumberCol = new TableColumn<>("Numer konta");
         accountNumberCol.setCellValueFactory(new PropertyValueFactory<>("accountNumber"));
@@ -267,34 +273,6 @@ public class AccountManagementTab {
                 return "";
         }
     }
-    private static void copyRowToClipboard() {
-        ObservableList<Account> selectedAccounts = accountTable.getSelectionModel().getSelectedItems();
-        if (selectedAccounts.isEmpty()) {
-            return;
-        }
-
-        StringBuilder clipboardString = new StringBuilder();
-
-
-        accountTable.getColumns().forEach(column -> {
-            clipboardString.append(column.getText()).append("\t");
-        });
-        clipboardString.append("\n");
-
-
-        for (Account account : selectedAccounts) {
-            clipboardString.append(account.getAccountNumber()).append("\t")
-                    .append(account.getTypeOfAccount()).append("\t")
-                    .append(String.format("%.2f zł", account.getBalance())).append("\t")
-                    .append(account.getDateOfCreation()).append("\t")
-                    .append(account.getStatus()).append("\t")
-                    .append(account.getLogin()).append("\n");
-        }
-
-        final ClipboardContent content = new ClipboardContent();
-        content.putString(clipboardString.toString());
-        Clipboard.getSystemClipboard().setContent(content);
-    }
 
     private static void refreshAccountData() {
         accountList.clear();
@@ -362,23 +340,18 @@ public class AccountManagementTab {
     }
 
     private static void displayAssignedClients(Account selectedAccount) {
-        // Utworzenie dialogu
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("Przypisani klienci");
         dialog.setHeaderText("Lista klientów przypisanych do konta: " + selectedAccount.getAccountNumber());
 
-        // Utworzenie pola tekstowego z możliwością kopiowania
         TextArea clientsTextArea = new TextArea();
         clientsTextArea.setEditable(false);
         clientsTextArea.setPrefRowCount(10);
         clientsTextArea.setPrefColumnCount(40);
         clientsTextArea.setWrapText(true);
 
-        // Pobranie listy klientów
-
         List<Client> clients = ClientRepository.readClientsByAccount(selectedAccount.getAccountNumber());
 
-        // Formatowanie tekstu z klientami
         StringBuilder clientsText = new StringBuilder();
         for (Client client : clients) {
             clientsText.append(String.format("Pesel: %s, Imię: %s, Nazwisko: %s, drugie imię: %s, numer telefonu: %s, data urodzenia: %s \n",
@@ -400,16 +373,13 @@ public class AccountManagementTab {
             clipboard.setContent(content);
         });
 
-        // Kontener dla elementów
         VBox content = new VBox(10);
         content.getChildren().addAll(clientsTextArea, copyButton);
         content.setPadding(new Insets(10));
 
-        // Dodanie przycisków
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
         dialog.getDialogPane().setContent(content);
 
-        // Wyświetlenie dialogu
         dialog.showAndWait();
     }
 
@@ -487,13 +457,11 @@ public class AccountManagementTab {
         dialog.showAndWait();
     }
 
-
     private static void deleteAccount(Account account) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Potwierdzenie usunięcia");
         alert.setHeaderText("Czy na pewno chcesz usunąć konto?");
-        alert.setContentText("Numer konta: " + account.getAccountNumber() +
-                "\nWłaściciel: ");
+        alert.setContentText("Numer konta: " + account.getAccountNumber());
 
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {

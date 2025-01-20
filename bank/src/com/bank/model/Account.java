@@ -69,10 +69,10 @@ public class Account {
 
     @Override
     public String toString() {
-        return "com.bank.model.Account Number: " + accountNumber + "," +
-                " Type: " + typeOfAccount +
-                ", Balance: " + balance +
-                ", Date: " + dateOfCreation +
+        return "Numer konta: " + accountNumber + "," +
+                " Typ konta: " + typeOfAccount +
+                ", Balans: " + balance +
+                ", Data utworzenia: " + dateOfCreation +
                 ", Status: " + status +
                 ", Login: " + login;
     }

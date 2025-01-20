@@ -33,7 +33,6 @@ public class LoginApp {
         mainContainer.setStyle("-fx-background-color: #f5f5f5;");
         mainContainer.setAlignment(Pos.CENTER);
 
-        // Panel logowania
         VBox loginPanel = new VBox(12);
         loginPanel.setStyle(
                 "-fx-background-color: white;" +

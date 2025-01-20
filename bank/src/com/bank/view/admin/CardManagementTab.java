@@ -1,5 +1,6 @@
 package com.bank.view.admin;
 
+import com.bank.model.Account;
 import com.bank.model.Card;
 import com.bank.repository.CardRepository;
 import com.bank.model.Client;
@@ -10,13 +11,16 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
 public class CardManagementTab {
 
     private static TableView<Card> cardTable;
-    private static ObservableList<Card> cardtList = FXCollections.observableArrayList();
+    private static final ObservableList<Card> cardList = FXCollections.observableArrayList();
 
     public static Tab getTab() {
         Tab tab = new Tab("Zarządzanie kartami");
@@ -35,8 +39,52 @@ public class CardManagementTab {
         return tab;
     }
 
+    private static void copyCellToClipboard(){
+        TablePosition<?, ?> pos = cardTable.getSelectionModel().getSelectedCells().stream()
+                .findFirst()
+                .orElse(null);
+
+        if (pos != null) {
+            Card card = cardTable.getItems().get(pos.getRow());
+            String cellContent = getCellContent(card, pos.getTableColumn().getText());
+
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(cellContent);
+            Clipboard.getSystemClipboard().setContent(content);
+        }
+    }
+
+    private static String getCellContent(Card card, String columnName) {
+        switch (columnName) {
+            case "Numer karty":
+                return card.getCardNumber();
+            case "Data wygaśnięcia":
+                return  String.valueOf(card.getExpirationDate());
+            case "Dzienny limit":
+                return  String.valueOf(card.getDailyLimit());
+            case "Limit pojedynczej płatności":
+                return String.valueOf(card.getSinglePaymentLimit());
+            case "ccv":
+                return card.getCvv();
+            case "Czy aktywna":
+                return card.isActive() ? "Tak" : "Nie";
+            default:
+                return "";
+        }
+    }
+
     private static TableView<Card> createTableView(){
         cardTable = new TableView<>();
+
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem copyCellMenuItem = new MenuItem("Kopiuj komórkę");
+
+        copyCellMenuItem.setOnAction(e -> copyCellToClipboard());
+
+        cardTable.setContextMenu(contextMenu);
+        contextMenu.getItems().addAll(copyCellMenuItem);
+
+        cardTable.getSelectionModel().setCellSelectionEnabled(true);
 
         TableColumn<Card, String> cardNumberCol = new TableColumn<>("Numer karty");
         cardNumberCol.setCellValueFactory(new PropertyValueFactory<>("cardNumber"));
@@ -44,16 +92,16 @@ public class CardManagementTab {
         TableColumn<Card, String> expirationDateCol = new TableColumn<>("Data wygaśnięcia");
         expirationDateCol.setCellValueFactory(new PropertyValueFactory<>("expirationDate"));
 
-        TableColumn<Card, String> dailyLimitCol = new TableColumn<>("dzienny limit");
+        TableColumn<Card, String> dailyLimitCol = new TableColumn<>("Dzienny limit");
         dailyLimitCol.setCellValueFactory(new PropertyValueFactory<>("dailyLimit"));
 
-        TableColumn<Card, String> singlePaymentLimitCol = new TableColumn<>("limit pojedynczej płatności");
+        TableColumn<Card, String> singlePaymentLimitCol = new TableColumn<>("Limit pojedynczej płatności");
         singlePaymentLimitCol.setCellValueFactory(new PropertyValueFactory<>("singlePaymentLimit"));
 
         TableColumn<Card, String> ccvCol = new TableColumn<>("ccv");
         ccvCol.setCellValueFactory(new PropertyValueFactory<>("cvv"));
 
-        TableColumn<Card, Boolean> isActiveCol = new TableColumn<>("czy aktywna");
+        TableColumn<Card, Boolean> isActiveCol = new TableColumn<>("Czy aktywna");
         isActiveCol.setCellValueFactory(new PropertyValueFactory<>("active"));
         isActiveCol.setCellFactory(column -> new TableCell<Card, Boolean>() {
             @Override
@@ -76,7 +124,7 @@ public class CardManagementTab {
         cardTable.getColumns().addAll(cardNumberCol, expirationDateCol, dailyLimitCol,
                 singlePaymentLimitCol, ccvCol, isActiveCol, accountNumberCol, pinCol);
         cardTable.setPrefHeight(400);
-        cardTable.setItems(cardtList);
+        cardTable.setItems(cardList);
         return cardTable;
     }
 
@@ -87,6 +135,7 @@ public class CardManagementTab {
         Button blockCardBtn = new Button("Zablokuj kartę");
         Button unblockCardBtn = new Button("Odblokuj kartę");
         Button deleteCardBtn = new Button("Usuń kartę");
+        Button refreshDataBtn = new Button("Odśwież");
 
         String buttonStyle = "-fx-background-color: #2196f3; -fx-text-fill: white; " +
                 "-fx-font-weight: bold; -fx-min-width: 150;";
@@ -94,9 +143,9 @@ public class CardManagementTab {
         blockCardBtn.setStyle(buttonStyle);
         unblockCardBtn.setStyle(buttonStyle);
         deleteCardBtn.setStyle(buttonStyle);
-
+        refreshDataBtn.setStyle(buttonStyle);
         buttonBox.getChildren().addAll(issueCardBtn, blockCardBtn,
-                unblockCardBtn,deleteCardBtn);
+                unblockCardBtn,deleteCardBtn,refreshDataBtn);
 
         blockCardBtn.setOnAction(e -> {
             Card selectedCard = cardTable.getSelectionModel().getSelectedItem();
@@ -130,12 +179,13 @@ public class CardManagementTab {
                 if (result.contains("Error")) ErrorAlert.showAlert("Błąd", result);
             } else ErrorAlert.showAlert("Błąd" , "Wybierz karte");
         });
+        refreshDataBtn.setOnAction( e -> refreshCardData());
         return buttonBox;
     }
 
     private static void refreshCardData(){
-        cardtList.clear();
-        cardtList.addAll(CardRepository.readAllCards());
+        cardList.clear();
+        cardList.addAll(CardRepository.readAllCards());
     }
     private static void showAddCardDialog(){
         Dialog<Client> dialog = new Dialog<>();

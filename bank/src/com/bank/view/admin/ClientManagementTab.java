@@ -1,5 +1,6 @@
 package com.bank.view.admin;
 
+import com.bank.model.Card;
 import com.bank.model.Client;
 import com.bank.repository.ClientRepository;
 import com.bank.view.shared.ErrorAlert;
@@ -9,6 +10,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.*;
 import javafx.scene.text.Text;
 
@@ -39,8 +42,54 @@ public class ClientManagementTab {
         return tab;
     }
 
+    private static void copyCellToClipboard(){
+        TablePosition<?, ?> pos = clientTable.getSelectionModel().getSelectedCells().stream()
+                .findFirst()
+                .orElse(null);
+
+        if (pos != null) {
+            Client client = clientTable.getItems().get(pos.getRow());
+            String cellContent = getCellContent(client, pos.getTableColumn().getText());
+
+            final ClipboardContent content = new ClipboardContent();
+            content.putString(cellContent);
+            Clipboard.getSystemClipboard().setContent(content);
+        }
+    }
+
+    private static String getCellContent(Client client, String columnName){
+        switch (columnName) {
+            case "Pesel klienta":
+                return client.getPesel();
+            case "Imię":
+                return  client.getFirstName();
+            case "Nazwisko":
+                return  client.getLastName();
+            case "Drugie imię":
+                return client.getMiddleName();
+            case "Nr telefonu":
+                return client.getPhoneNumber();
+            case "Data urodzenia":
+                return String.valueOf(client.getDateOfBirth());
+            default:
+                return "";
+        }
+    }
+
     private static TableView<Client> createTableView(){
         clientTable = new TableView<>();
+
+
+        ContextMenu contextMenu = new ContextMenu();
+        MenuItem copyCellMenuItem = new MenuItem("Kopiuj komórkę");
+
+        copyCellMenuItem.setOnAction(e -> copyCellToClipboard());
+
+        clientTable.setContextMenu(contextMenu);
+        contextMenu.getItems().addAll(copyCellMenuItem);
+
+        clientTable.getSelectionModel().setCellSelectionEnabled(true);
+
 
         TableColumn<Client, String> clientPesel = new TableColumn<>("Pesel klienta");
         clientPesel.setCellValueFactory(new PropertyValueFactory<>("pesel"));
@@ -51,10 +100,10 @@ public class ClientManagementTab {
         TableColumn<Client, String> clientLastName = new TableColumn<>("Nazwisko");
         clientLastName.setCellValueFactory(new PropertyValueFactory<>("lastName"));
 
-        TableColumn<Client, String> clientMiddleName = new TableColumn<>("2 imię");
+        TableColumn<Client, String> clientMiddleName = new TableColumn<>("Drugie imię");
         clientMiddleName.setCellValueFactory(new PropertyValueFactory<>("middleName"));
 
-        TableColumn<Client, String> clientPhoneNumber = new TableColumn<>("nr telefonu");
+        TableColumn<Client, String> clientPhoneNumber = new TableColumn<>("Nr telefonu");
         clientPhoneNumber.setCellValueFactory(new PropertyValueFactory<>("phoneNumber"));
 
         TableColumn<Client, Date> clientBirthDate = new TableColumn<>("Data urodzenia");
@@ -75,6 +124,7 @@ public class ClientManagementTab {
         Button editClientLastNameBtn = new Button("Zmień nazwisko");
         Button editClientMiddleNameBtn = new Button("Zmień drugie imię");
         Button deleteClientBtn = new Button("Usuń klienta");
+        Button refreshDataBtn = new Button("Odśwież");
 
         String buttonStyle = "-fx-background-color: #2196f3; -fx-text-fill: white; " +
                 "-fx-font-weight: bold; -fx-min-width: 150;";
@@ -83,9 +133,10 @@ public class ClientManagementTab {
         editClientLastNameBtn.setStyle(buttonStyle);
         editClientMiddleNameBtn.setStyle(buttonStyle);
         deleteClientBtn.setStyle(buttonStyle);
+        refreshDataBtn.setStyle(buttonStyle);
 
         buttonBox.getChildren().addAll(addClientBtn, editClientFirstNameBtn,editClientLastNameBtn,editClientMiddleNameBtn,
-                deleteClientBtn);
+                deleteClientBtn, refreshDataBtn);
 
         addClientBtn.setOnAction(e -> showAddClientDialog());
 
@@ -116,6 +167,7 @@ public class ClientManagementTab {
                 showDeleteClientAlert(selectedClient);
             } else showAlert("Błąd", "Wybierz klienta");
         });
+        refreshDataBtn.setOnAction(e -> refreshClientData());
 
         return buttonBox;
     }

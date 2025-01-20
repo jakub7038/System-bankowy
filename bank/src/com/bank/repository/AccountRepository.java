@@ -57,7 +57,7 @@ public class AccountRepository {
              CallableStatement stmt = connection.prepareCall(sql)) {
 
             stmt.setString(1, typeOfAccount);
-            stmt.setDouble(2, balance);
+            stmt.setDouble(2, balance*100);
             stmt.setString(3, status);
             stmt.setString(4, login);
             stmt.setString(5, password);
@@ -75,7 +75,7 @@ public class AccountRepository {
 
     public static String deleteAccount(String accountNumber) {
         String result = "Error deleting account.";
-        String sql = "{CALL accout_pkg.DELETE_ACCOUNT(?, ?)}";
+        String sql = "{CALL account_pkg.DELETE_ACCOUNT(?, ?)}";
 
         try (Connection connection = DatabaseConfig.getConnection();
              CallableStatement stmt = connection.prepareCall(sql)) {
@@ -223,7 +223,7 @@ public class AccountRepository {
         return new Account(
                 rs.getString("account_number"),
                 rs.getString("type_of_account"),
-                rs.getDouble("balance"),
+                rs.getDouble("balance")/100,
                 rs.getDate("date_of_creation"),
                 rs.getString("status"),
                 rs.getString("login")
