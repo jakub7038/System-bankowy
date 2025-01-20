@@ -270,12 +270,11 @@ BEGIN
         WHERE account_number = account_rec.account_number;
 
         IF v_client_count = 0 THEN
-            DELETE_ACCOUNT(account_rec.account_number, v_account_result);
+            account_pkg.DELETE_ACCOUNT(account_rec.account_number, v_account_result);
             DBMS_OUTPUT.PUT_LINE(v_account_result);
         END IF;
     END LOOP;
 
-    -- Delete the client record
     DELETE FROM CLIENT WHERE pesel = p_pesel;
 
     COMMIT;
