@@ -358,16 +358,19 @@ EXCEPTION
         p_result := 'Error updating login: ' || SQLERRM;
 END admin_update_login;
 
-    PROCEDURE DELETE_ACCOUNT (
+PROCEDURE DELETE_ACCOUNT (
     p_account_number IN CHAR,
     p_result OUT VARCHAR2
 ) IS
 BEGIN
+    DELETE FROM CARD WHERE account_number = p_account_number;
+    DELETE FROM CLIENT_ACCOUNT WHERE account_number = p_account_number;
+
     DELETE FROM ACCOUNT WHERE account_number = p_account_number;
 
     IF SQL%ROWCOUNT > 0 THEN
         COMMIT;
-        p_result := 'Account and associated cards deleted successfully.';
+        p_result := 'Account and associated cards and links deleted successfully.';
     ELSE
         p_result := 'Account not found.';
     END IF;
