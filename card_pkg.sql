@@ -58,22 +58,34 @@ END card_pkg;
 
 CREATE OR REPLACE PACKAGE BODY card_pkg IS
 
-    PROCEDURE CREATE_CARD (
-        p_daily_limit IN NUMBER,
-        p_single_payment_limit IN NUMBER,
-        p_CVV IN VARCHAR2,
-        p_is_active IN NUMBER,
-        p_account_number IN VARCHAR2,
-        p_PIN IN VARCHAR2,
-        p_result OUT VARCHAR2
-    ) IS
-        v_card_number   VARCHAR2(16);
-        v_date_of_expiration DATE;
+
+PROCEDURE CREATE_CARD (
+    p_daily_limit IN NUMBER,
+    p_single_payment_limit IN NUMBER,
+    p_CVV IN VARCHAR2,
+    p_is_active IN NUMBER,
+    p_account_number IN VARCHAR2,
+    p_PIN IN VARCHAR2,
+    p_result OUT VARCHAR2
+) IS
+    v_card_number   VARCHAR2(16);
+    v_date_of_expiration DATE;
+BEGIN
+    IF LENGTH(p_PIN) != 4 THEN
+        p_result := 'Invalid PIN. It must be exactly 4 characters long.';
+        RETURN;
+    END IF;
+
+    IF LENGTH(p_CVV) != 3 THEN
+        p_result := 'Invalid CVV. It must be exactly 3 characters long.';
+        RETURN;
+    END IF;
+
+    v_card_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 9999999999999999)), 16, '0');
+
+    v_date_of_expiration := ADD_MONTHS(SYSDATE, 60);
+
     BEGIN
-        v_card_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 9999999999999999)), 16, '0');
-
-        v_date_of_expiration := ADD_MONTHS(SYSDATE, 60);
-
         INSERT INTO CARD (
             card_number, 
             date_of_expiration, 
@@ -94,12 +106,19 @@ CREATE OR REPLACE PACKAGE BODY card_pkg IS
             p_PIN
         );
 
-        p_result := 'Card created successfully.';
         COMMIT;
+        p_result := 'Card created successfully.';
     EXCEPTION
         WHEN OTHERS THEN
-            p_result := 'Error creating card: ' || SQLERRM;
-    END CREATE_CARD;
+            IF SQLCODE = -1400 THEN
+                p_result := 'Error: One or more required fields are missing.';
+            ELSE
+                p_result := 'Error creating card: ' || SQLERRM;
+            END IF;
+            ROLLBACK;
+    END;
+END CREATE_CARD;    
+
 
     FUNCTION READ_ALL_CARDS_FUNC RETURN card_table PIPELINED IS
     BEGIN

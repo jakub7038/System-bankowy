@@ -61,28 +61,48 @@ END client_pkg;
 
 CREATE OR REPLACE PACKAGE BODY client_pkg IS
 
-    PROCEDURE CREATE_CLIENT (
-        p_pesel IN CHAR,
-        p_first_name IN VARCHAR2,
-        p_last_name IN VARCHAR2,
-        p_middle_name IN VARCHAR2,
-        p_phone_number IN VARCHAR2,
-        p_date_of_birth IN DATE,
-        p_result OUT VARCHAR2
-    ) IS
-    BEGIN
-        INSERT INTO CLIENT (
-            PESEL, first_name, last_name, middle_name, phone_number, date_of_birth
-        ) VALUES (
-            p_pesel, p_first_name, p_last_name, p_middle_name, p_phone_number, p_date_of_birth
-        );
-        COMMIT;
-        p_result := 'Client created successfully.';
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            p_result := 'Error creating client: ' || SQLERRM;
-    END CREATE_CLIENT;
+
+PROCEDURE CREATE_CLIENT (
+    p_pesel IN CHAR,
+    p_first_name IN VARCHAR2,
+    p_last_name IN VARCHAR2,
+    p_middle_name IN VARCHAR2,
+    p_phone_number IN VARCHAR2,
+    p_date_of_birth IN DATE,
+    p_result OUT VARCHAR2
+) IS
+    valid_pesel BOOLEAN := FALSE;
+    v_pesel CHAR;
+BEGIN
+    
+    IF LENGTH(v_pesel) = 11 AND REGEXP_LIKE(v_pesel, '^\d{11}$') THEN
+        valid_pesel := TRUE;
+    ELSE
+        p_result := 'Zły pesel';
+        RETURN;
+    END IF;
+
+    IF valid_pesel THEN
+        BEGIN
+            INSERT INTO CLIENT (
+                PESEL, first_name, last_name, middle_name, phone_number, date_of_birth
+            ) VALUES (
+                v_pesel, p_first_name, p_last_name, p_middle_name, p_phone_number, p_date_of_birth
+            );
+            COMMIT;
+            p_result := 'Client created successfully.';
+        EXCEPTION
+            WHEN OTHERS THEN
+                ROLLBACK;
+                IF SQLCODE = -1400 THEN
+                    p_result := 'Error: One or more required fields are missing or NULL.';
+                ELSE
+                    p_result := 'Error creating client: ' || SQLERRM;
+                END IF;
+        END;
+    END IF;
+END CREATE_CLIENT;
+
 
     FUNCTION READ_ALL_CLIENTS RETURN client_tbl PIPELINED IS
     BEGIN
@@ -288,4 +308,3 @@ END DELETE_CLIENT;
 
 END client_pkg;
 /
-

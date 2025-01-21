@@ -36,15 +36,50 @@ END receiver_pkg;
 /
 
 CREATE OR REPLACE PACKAGE BODY receiver_pkg IS
+PROCEDURE CREATE_RECEIVER(
+    p_account_number_receiver IN CHAR,
+    p_account_number_tied IN CHAR,
+    p_description IN VARCHAR2,
+    p_first_name IN VARCHAR2,
+    p_last_name IN VARCHAR2,
+    p_result OUT VARCHAR2
+) IS
+BEGIN
+    IF LENGTH(p_account_number_receiver) < 26 THEN
+        p_result := 'Error: Account number receiver too short.';
+        RETURN;
+    END IF;
 
-    PROCEDURE CREATE_RECEIVER(
-        p_account_number_receiver IN CHAR,
-        p_account_number_tied IN CHAR,
-        p_description IN VARCHAR2,
-        p_first_name IN VARCHAR2,
-        p_last_name IN VARCHAR2,
-        p_result OUT VARCHAR2
-    ) IS
+    IF LENGTH(p_account_number_tied) < 26 THEN
+        p_result := 'Error: Account number tied too short.';
+        RETURN;
+    END IF;
+
+    IF REGEXP_LIKE(p_account_number_receiver, '[^0-9]') THEN
+        p_result := 'Error: only digits.';
+        RETURN;
+    END IF;
+
+    IF REGEXP_LIKE(p_account_number_tied, '[^0-9]') THEN
+        p_result := 'Error: only digits.';
+        RETURN;
+    END IF;
+
+    IF p_first_name IS NULL OR TRIM(p_first_name) = '' THEN
+        p_result := 'Error: First name cannot be empty.';
+        RETURN;
+    END IF;
+
+    IF p_last_name IS NULL OR TRIM(p_last_name) = '' THEN
+        p_result := 'Error: Last name cannot be empty.';
+        RETURN;
+    END IF;
+
+    IF p_description IS NULL OR TRIM(p_description) = '' THEN
+        p_result := 'Error: Description cannot be empty.';
+        RETURN;
+    END IF;
+
     BEGIN
         INSERT INTO RECEIVER (
             account_number_RECEIVER,
@@ -60,13 +95,19 @@ CREATE OR REPLACE PACKAGE BODY receiver_pkg IS
             p_last_name
         );
         COMMIT;
-
         p_result := 'Receiver created successfully.';
     EXCEPTION
         WHEN OTHERS THEN
             ROLLBACK;
-            p_result := 'Error creating receiver: ' || SQLERRM;
-    END CREATE_RECEIVER;
+            IF SQLCODE = -1400 THEN
+                p_result := 'Error: One or more required fields are missing.';
+            ELSE
+                p_result := 'Error: ' || SQLERRM;
+            END IF;
+    END;
+END CREATE_RECEIVER;
+
+
 
     FUNCTION READ_ALL_RECEIVERS_FUNC
     RETURN receiver_tbl PIPELINED
@@ -141,5 +182,3 @@ CREATE OR REPLACE PACKAGE BODY receiver_pkg IS
 
 END receiver_pkg;
 /
-
-
