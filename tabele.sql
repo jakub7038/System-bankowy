@@ -58,3 +58,19 @@ CREATE TABLE RECEIVER (
     CONSTRAINT pk_receiver PRIMARY KEY (account_number_RECEIVER, account_number_TIED),
     CONSTRAINT fk_receiver_account FOREIGN KEY (account_number_TIED) REFERENCES ACCOUNT(account_number) ON DELETE CASCADE
 );
+
+
+CREATE SEQUENCE transaction_id_seq
+START WITH 1
+INCREMENT BY 1
+NOCACHE
+NOCYCLE;
+/
+
+CREATE OR REPLACE TRIGGER trg_transaction_id
+BEFORE INSERT ON "TRANSACTION"
+FOR EACH ROW
+BEGIN
+    :NEW.ID := transaction_id_seq.NEXTVAL;
+END;
+/

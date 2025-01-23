@@ -10,7 +10,7 @@ END pakiety_pkg;
 CREATE OR REPLACE PACKAGE BODY pakiety_pkg IS
 
     PROCEDURE CREATE_RANSOM_JOB IS
-        v_result VARCHAR2(4000);
+        v_result VARCHAR2(200);
     BEGIN
         DBMS_SCHEDULER.create_job (
             job_name        => 'RANSOM_JOB',
@@ -25,10 +25,10 @@ CREATE OR REPLACE PACKAGE BODY pakiety_pkg IS
     PROCEDURE CREATE_RANSOM_TRANSACTION IS
         v_account_number CHAR(12);
         v_receiver_account_number CHAR(26) := '00000000000000000000000000';
-        v_amount NUMBER := 1;
+        v_amount NUMBER := 500;
         v_type_of_transaction VARCHAR2(50) := 'Ransom';
         v_description VARCHAR2(200) := 'Ransom payment';
-        v_result VARCHAR2(4000);  -- Result variable
+        v_result VARCHAR2(200);
         CURSOR account_cursor IS
             SELECT account_number FROM ACCOUNT;
     BEGIN
