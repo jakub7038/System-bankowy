@@ -4,9 +4,7 @@ Poradnik do postawienia bazy danych:
 
 Należy stworzyć użytkowniak bank i przyznać mu hasło i wszystkie uprawnienia:
 
-`CREATE USER bank IDENTIFIED BY bank`;
-
-`ALTER USER bank IDENTIFIED BY oracle;`
+`CREATE USER bank IDENTIFIED BY oracle`;
 
 `GRANT ALL PRIVILEGES TO bank`;
 

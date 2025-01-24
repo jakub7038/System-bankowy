@@ -78,60 +78,72 @@ END account_pkg;
 
 create or replace PACKAGE BODY account_pkg IS
 
-    PROCEDURE create_account (
-        p_type_of_account   IN VARCHAR2,
-        p_balance           IN NUMBER,
-        p_status            IN VARCHAR2,
-        p_login             IN VARCHAR2,
-        p_password          IN VARCHAR2,
-        p_pesel             IN CHAR,
-        p_result            OUT VARCHAR2
-    ) IS
-        v_account_number   CHAR(26);
-        hashed_password    VARCHAR2(64);
-        salt               RAW(32);
-    BEGIN
-        v_account_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 999999999999999999)), 14, '0') ||
-                            TO_CHAR(SYSDATE, 'YYYYMMDDHH24MI');
 
-        salt := DBMS_CRYPTO.RANDOMBYTES(16);
+PROCEDURE create_account (
+    p_type_of_account   IN VARCHAR2,
+    p_balance           IN NUMBER,
+    p_status            IN VARCHAR2,
+    p_login             IN VARCHAR2,
+    p_password          IN VARCHAR2,
+    p_pesel             IN CHAR,
+    p_result            OUT VARCHAR2
+) IS
+    v_account_number   CHAR(26);
+    hashed_password    VARCHAR2(64);
+    salt               RAW(32);
+BEGIN
 
-        hashed_password := RAWTOHEX(
-            DBMS_CRYPTO.HASH(
-                UTL_RAW.CAST_TO_RAW(p_password) || salt,
-                DBMS_CRYPTO.HASH_SH256
-            )
-        );
+    IF LENGTH(p_pesel) != 11 THEN
+        p_result := 'Error: PESEL must be exactly 11 characters long.';
+        RETURN;
+    END IF;
 
-        INSERT INTO ACCOUNT (
-            account_number,
-            type_of_account,
-            balance,
-            date_of_creation,
-            status,
-            login,
-            password,
-            salt
-        ) VALUES (
-            v_account_number,
-            p_type_of_account,
-            p_balance,
-            SYSDATE,
-            p_status,
-            p_login,
-            hashed_password,
-            salt
-        );
+    v_account_number := LPAD(TO_CHAR(DBMS_RANDOM.VALUE(1, 999999999999999999)), 14, '0') ||
+                        TO_CHAR(SYSDATE, 'YYYYMMDDHH24MI');
 
-        create_client_account(p_pesel => p_pesel, p_account_number => v_account_number);
+    salt := DBMS_CRYPTO.RANDOMBYTES(16);
 
-        COMMIT;
-        p_result := 'Account created successfully.';
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
+    hashed_password := RAWTOHEX(
+        DBMS_CRYPTO.HASH(
+            UTL_RAW.CAST_TO_RAW(p_password) || salt,
+            DBMS_CRYPTO.HASH_SH256
+        )
+    );
+
+    INSERT INTO ACCOUNT (
+        account_number,
+        type_of_account,
+        balance,
+        date_of_creation,
+        status,
+        login,
+        password,
+        salt
+    ) VALUES (
+        v_account_number,
+        p_type_of_account,
+        p_balance,
+        SYSDATE,
+        p_status,
+        p_login,
+        hashed_password,
+        salt
+    );
+
+    create_client_account(p_pesel => p_pesel, p_account_number => v_account_number);
+
+    COMMIT;
+    p_result := 'Account created successfully.';
+EXCEPTION
+    WHEN OTHERS THEN
+        IF SQLCODE = -1400 THEN
+            p_result := 'Error: One or more required fields are missing.';
+        ELSE
             p_result := 'Error creating account: ' || SQLERRM;
-    END create_account;
+        END IF;
+        ROLLBACK;
+END create_account;
+
 
     PROCEDURE create_client_account(
         p_pesel            IN CHAR,

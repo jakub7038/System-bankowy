@@ -38,10 +38,13 @@ CREATE OR REPLACE PACKAGE BODY client_account_pkg IS
 
         COMMIT;
         p_result := 'dodano.';
-    EXCEPTION
-        WHEN OTHERS THEN
-            ROLLBACK;
-            p_result := 'problem: ' || SQLERRM;
+    WHEN OTHERS THEN
+        IF SQLCODE = -1400 THEN
+            p_result := 'Error: One or more required fields are missing.';
+        ELSE
+            p_result := 'Error: ' || SQLERRM;
+        END IF;
+        ROLLBACK;
     END ADD_CLIENT_TO_ACCOUNT;
 
     PROCEDURE DELETE_CLIENT_FROM_ACCOUNT (
