@@ -45,7 +45,7 @@ public class TransactionTab {
 
     private static void refreshTransactionData(){
         transactionList.clear();
-        transactionList.addAll(TransactionRepository.readAllTransactions());
+        transactionList.addAll(TransactionRepository.readTransactionsByAccount(current_login_account_number));
     }
 
     private static void createTableView(){

@@ -71,8 +71,8 @@ public class Receiver {
 
     public String displayReceiver() {
         return "Konto: " + accountNumberReceiver.trim() +
-                ", Opis: " + description.trim() +
-                ", imię: " + firstName.trim() +
-                ", nazwisko: " + lastName.trim();
+                ", Opis: " + description +
+                ", imię: " + firstName +
+                ", nazwisko: " + lastName;
     }
 }
